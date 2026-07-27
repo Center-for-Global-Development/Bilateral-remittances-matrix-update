@@ -151,6 +151,17 @@ body{font-size:var(--body-size)}
 }
   </style>
   <link rel="stylesheet" href="shared/cgd-responsive.css">
+  <style>
+    .grid-scroll { position: relative; isolation: isolate; padding-left: 0 !important; }
+    .corner, .row-header, .row-total-header {
+      position: sticky !important;
+      left: 0 !important;
+      z-index: 6;
+      background: var(--cgd-offwhite) !important;
+      box-shadow: 7px 0 9px -8px rgba(26,39,42,.55);
+    }
+    .corner { z-index: 8; }
+  </style>
 </head>
 <body>
   <div class="viz-wrapper" id="vizRoot">

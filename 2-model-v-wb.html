@@ -385,8 +385,18 @@ body { font-size: var(--body-size); }
 
   const state = { year: '2024', incomeGroup: 'ALL', country: 'ALL' };
   const incomeOrder = ['High income', 'Upper middle income', 'Lower middle income', 'Low income', 'Not classified'];
-  const incomeOptions = [{ value: 'ALL', label: 'All income groups' }]
-    .concat(incomeOrder.filter(g => rawData.some(d => d.income === g)).map(g => ({ value: g, label: g })));
+  const incomeShortLabel = new Map([
+    ['High income', 'High'],
+    ['Upper middle income', 'Upper middle'],
+    ['Lower middle income', 'Lower middle'],
+    ['Low income', 'Low'],
+    ['Not classified', 'Not classified']
+  ]);
+  const incomeOptions = [{ value: 'ALL', label: 'All' }]
+    .concat(incomeOrder.filter(g => rawData.some(d => d.income === g)).map(g => ({
+      value: g,
+      label: incomeShortLabel.get(g) || g
+    })));
 
   function valueOf(d, series) {
     if (series === 'model') return Number(d['model' + state.year]) || 0;
@@ -675,7 +685,8 @@ body { font-size: var(--body-size); }
   function renderChart() {
     const data = contextData();
     const selected = selectedCountry();
-    const width = Math.max(320, Math.floor(chartWrap.clientWidth));
+    const visibleWidth = Math.min(chartWrap.clientWidth || 900, window.visualViewport?.width || Infinity, document.documentElement.clientWidth || Infinity);
+    const width = Math.max(320, Math.floor(visibleWidth));
     const height = width < 560 ? 370 : 430;
     const margin = { top: 12, right: 18, bottom: width < 560 ? 66 : 62, left: width < 560 ? 68 : 68 };
     const innerW = width - margin.left - margin.right;
@@ -719,7 +730,7 @@ body { font-size: var(--body-size); }
 
     const xTitle = makeEl('text', { x: margin.left + innerW / 2, y: height - 21, 'text-anchor': 'middle', class: 'axis-title' }, width < 560 ? 'World Bank remittances sent' : 'World Bank remittances sent (current US$)');
     svg.appendChild(xTitle);
-    const yTitle = makeEl('text', { x: 16, y: margin.top + innerH / 2, transform: `rotate(-90, 16, ${margin.top + innerH / 2})`, 'text-anchor': 'middle', class: 'axis-title' }, width < 560 ? 'Modelled remittances sent' : 'Modelled remittances sent (current US$)');
+    const yTitle = makeEl('text', { x: 10, y: margin.top + innerH / 2, transform: `rotate(-90, 10, ${margin.top + innerH / 2})`, 'text-anchor': 'middle', class: 'axis-title' }, width < 560 ? 'Modelled remittances sent' : 'Modelled remittances sent (current US$)');
     svg.appendChild(yTitle);
 
     const pointsG = makeEl('g', {});

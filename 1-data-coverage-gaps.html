@@ -553,7 +553,8 @@ function renderRegionLegend(items) {
 function renderStatusChart(data) {
   const el=document.getElementById('statusChart');
   const items=data.statusCounts.slice().sort((a,b)=>b.count-a.count);
-  const width=Math.max(300, el.clientWidth||900);
+  const visibleWidth=Math.min(el.clientWidth||900, window.visualViewport?.width||Infinity, document.documentElement.clientWidth||Infinity);
+  const width=Math.max(300, visibleWidth);
   const compact=width<560;
   const veryNarrow=width<430;
   const mobileLabels={
@@ -601,7 +602,8 @@ function displayedRecipients(data) {
 function renderRecipientChart(data) {
   const el=document.getElementById('recipientChart');
   const note=document.getElementById('selectedNote');
-  const width=Math.max(300,el.clientWidth||900);
+  const visibleWidth=Math.min(el.clientWidth||900, window.visualViewport?.width||Infinity, document.documentElement.clientWidth||Infinity);
+  const width=Math.max(300,visibleWidth);
   const items=displayedRecipients(data);
   const compact=width<560;
   const showLabels=items.length<=20 && width/items.length>=30 && !compact;

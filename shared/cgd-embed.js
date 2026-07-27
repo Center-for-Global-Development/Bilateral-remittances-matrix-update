@@ -9,6 +9,48 @@
   let lastHeight = 0;
   let viewSent = false;
   let activeDetailLabel = '';
+  let compactMode = null;
+
+  function visibleViewportWidth() {
+    const widths = [
+      window.visualViewport && window.visualViewport.width,
+      document.documentElement && document.documentElement.clientWidth,
+      window.innerWidth
+    ].map(Number).filter(value => Number.isFinite(value) && value > 0);
+    return widths.length ? Math.min.apply(null, widths) : 930;
+  }
+
+  function syncResponsiveMode() {
+    const nextCompact = visibleViewportWidth() <= 600;
+    document.documentElement.classList.toggle('cgd-mobile-embed', nextCompact);
+    document.documentElement.dataset.cgdViewport = nextCompact ? 'compact' : 'wide';
+
+    const fullscreen = document.querySelector('.fullscreen-btn');
+    const touchDevice = (navigator.maxTouchPoints || 0) > 0 ||
+      (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    if (fullscreen) fullscreen.hidden = nextCompact || touchDevice;
+
+    if (compactMode !== nextCompact) {
+      compactMode = nextCompact;
+      window.dispatchEvent(new CustomEvent('cgd:viewportchange', {
+        detail: { width: visibleViewportWidth(), compact: nextCompact }
+      }));
+    }
+  }
+
+  window.CGDViewport = Object.freeze({
+    width: visibleViewportWidth,
+    compact: function () { return visibleViewportWidth() <= 600; }
+  });
+
+  syncResponsiveMode();
+  window.addEventListener('resize', syncResponsiveMode);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', syncResponsiveMode);
+  }
+  queueMicrotask(function () {
+    window.dispatchEvent(new Event('resize'));
+  });
 
   function targetParentOrigin() {
     try {
@@ -122,6 +164,7 @@
       ['#countrySelect .select-option', 'filter', 'country'],
       ['#incomeLegend button, #incomeLegend [role="button"]', 'filter', 'income_group'],
       ['#scatterSvg .point', 'detail_open', 'country_detail'],
+      ['[data-popup-page]', 'navigate', 'destination_page'],
       ['#popupClose', 'detail_close', 'country_detail']
     ],
     '8-remittances-source-dependence.html': [

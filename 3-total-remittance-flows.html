@@ -289,7 +289,8 @@ svg{display:block;width:100%;height:100%}
   function renderScatter() {
     const rows = filteredBase();
     const box = svg.getBoundingClientRect();
-    const width = Math.max(320, box.width || 900);
+    const visibleWidth = Math.min(box.width || 900, window.visualViewport?.width || Infinity, document.documentElement.clientWidth || Infinity);
+    const width = Math.max(320, visibleWidth);
     const height = Math.max(320, box.height || 430);
     const margin = width < 520 ? {top:18,right:12,bottom:62,left:74} : {top:18,right:20,bottom:58,left:72};
     const innerW = width - margin.left - margin.right;
@@ -321,7 +322,7 @@ svg{display:block;width:100%;height:100%}
     });
     out.push(`</g>`);
     out.push(`<text class="axis-title" x="${margin.left+innerW/2}" y="${height-16}" text-anchor="middle">Total remittances received in 2021 (current US$)</text>`);
-    out.push(`<text class="axis-title" transform="translate(16 ${margin.top+innerH/2}) rotate(-90)" text-anchor="middle">Total remittances received in 2024 (current US$)</text>`);
+    out.push(`<text class="axis-title" transform="translate(10 ${margin.top+innerH/2}) rotate(-90)" text-anchor="middle">Total remittances received in 2024 (current US$)</text>`);
     pointRows.forEach(d => {
       if (state.country !== 'ALL' && d.id === state.country) return;
       const regionMuted = state.activeRegion && d.region !== state.activeRegion;
@@ -382,6 +383,11 @@ svg{display:block;width:100%;height:100%}
     tooltipPinned=false;
     hideTooltip(true);
   });
+  document.addEventListener('pointerdown', e => {
+    if(e.target.closest?.('.point') || e.target.closest?.('.tooltip')) return;
+    tooltipPinned=false;
+    hideTooltip(true);
+  }, true);
 
   function render() {
     renderLegend();

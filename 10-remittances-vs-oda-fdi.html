@@ -185,6 +185,40 @@ h1 { margin: 0; color: var(--cgd-teal); font-size: var(--title-size-desktop); li
 }
 </style>
   <link rel="stylesheet" href="shared/cgd-responsive.css">
+  <style>
+    .cgd-mobile-embed .chart { overflow-x: auto; padding-left: 0; isolation: isolate; }
+    .cgd-mobile-embed .chart-head > :first-child,
+    .cgd-mobile-embed .axis-scale-row > :first-child,
+    .cgd-mobile-embed .counterparty-row > .counterparty-label {
+      position: sticky;
+      left: 0;
+      z-index: 5;
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: #fff;
+      box-shadow: 7px 0 9px -8px rgba(26,39,42,.55);
+    }
+    .cgd-mobile-embed .chart-head > :first-child { z-index: 7; color: var(--cgd-teal); }
+    @media (max-width: 650px) {
+      .chart { overflow-x: auto; padding-left: 0; isolation: isolate; }
+      .chart-head > :first-child,
+      .axis-scale-row > :first-child,
+      .counterparty-row > .counterparty-label {
+        position: sticky;
+        left: 0;
+        z-index: 5;
+        align-self: stretch;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: #fff;
+        box-shadow: 7px 0 9px -8px rgba(26,39,42,.55);
+      }
+      .chart-head > :first-child { z-index: 7; color: var(--cgd-teal); }
+    }
+  </style>
 </head>
 <body>
 <div id="flowExplorer">

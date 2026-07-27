@@ -219,6 +219,8 @@ function selectCountry(id) {
   render();
 }
 function clearSelection() {
+  tooltipPinned = false;
+  hideTooltip(true);
   state.selectedCountry = 'ALL';
   syncCountryInput();
   render();
@@ -244,7 +246,8 @@ function render() {
 
 function renderScatter() {
   const wrap = scatterSvg.parentElement;
-  const width = Math.max(320, wrap.clientWidth || 900);
+  const visibleWidth = Math.min(wrap.clientWidth || 900, window.visualViewport?.width || Infinity, document.documentElement.clientWidth || Infinity);
+  const width = Math.max(320, visibleWidth);
   const height = Math.max(320, wrap.clientHeight || 430);
   const margin = {top:22,right:26,bottom:54,left:60};
   if(width < 520) { margin.left = 48; margin.right = 14; margin.bottom = 48; margin.top = 20; }
@@ -254,7 +257,7 @@ function renderScatter() {
   scatterSvg.innerHTML = '';
   const bg = document.createElementNS('http://www.w3.org/2000/svg','rect');
   bg.setAttribute('x',0); bg.setAttribute('y',0); bg.setAttribute('width',width); bg.setAttribute('height',height); bg.setAttribute('fill','#fff');
-  bg.addEventListener('click', () => { if(state.selectedCountry !== 'ALL') clearSelection(); });
+  bg.addEventListener('click', () => { tooltipPinned=false; hideTooltip(true); if(state.selectedCountry !== 'ALL') clearSelection(); });
   scatterSvg.appendChild(bg);
   const g = document.createElementNS('http://www.w3.org/2000/svg','g');
   g.setAttribute('transform',`translate(${margin.left},${margin.top})`);
@@ -312,7 +315,13 @@ function renderScatter() {
     c.addEventListener('mouseenter', ev => showTooltip(d, ev));
     c.addEventListener('mousemove', ev => positionTooltip(ev));
     c.addEventListener('mouseleave', hideTooltip);
-    c.addEventListener('click', ev => { ev.stopPropagation(); selectCountry(d.id); });
+    c.addEventListener('click', ev => {
+      ev.stopPropagation();
+      const coords = {clientX:ev.clientX, clientY:ev.clientY};
+      tooltipPinned = true;
+      selectCountry(d.id);
+      requestAnimationFrame(() => showTooltip(d, coords));
+    });
     pLayer.appendChild(c);
   });
 }
@@ -320,6 +329,7 @@ function line(x1,y1,x2,y2,cls) { const el=document.createElementNS('http://www.w
 function circle(cx,cy,r,cls) { const el=document.createElementNS('http://www.w3.org/2000/svg','circle'); el.setAttribute('cx',cx); el.setAttribute('cy',cy); el.setAttribute('r',r); if(cls) el.setAttribute('class',cls); return el; }
 function text(value,x,y,cls) { const el=document.createElementNS('http://www.w3.org/2000/svg','text'); el.textContent=value; el.setAttribute('x',x); el.setAttribute('y',y); if(cls) el.setAttribute('class',cls); return el; }
 
+let tooltipPinned = false;
 function showTooltip(d, ev) {
   const change = (d.ratio2024-d.ratio2021)*100;
   tooltip.innerHTML = `<strong>${escapeHtml(d.name)}</strong><div class="tooltip-grid">
@@ -341,7 +351,18 @@ function positionTooltip(ev) {
   tooltip.style.left = Math.max(pad,left) + 'px';
   tooltip.style.top = Math.max(pad,top) + 'px';
 }
-function hideTooltip() { tooltip.style.opacity = 0; tooltip.hidden = true; }
+function hideTooltip(force=false) {
+  if(tooltipPinned && !force) return;
+  tooltip.style.opacity = 0;
+  tooltip.hidden = true;
+}
+
+document.addEventListener('pointerdown', ev => {
+  if(ev.target.closest?.('.point') || ev.target.closest?.('.tooltip')) return;
+  tooltipPinned = false;
+  hideTooltip(true);
+  if(state.selectedCountry !== 'ALL') clearSelection();
+}, true);
 
 function syncFullscreenButton() {
   const isFullscreen = document.fullscreenElement === root;

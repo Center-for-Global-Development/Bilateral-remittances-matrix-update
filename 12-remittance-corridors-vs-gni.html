@@ -240,7 +240,8 @@ function niceStep(max, target=4){
 function renderChart(rows){
   const svg = els.svg;
   const wrap = svg.parentElement;
-  const width = Math.max(320, Math.floor(wrap.clientWidth || 900));
+  const visibleWidth = Math.min(wrap.clientWidth || 900, window.visualViewport?.width || Infinity, document.documentElement.clientWidth || Infinity);
+  const width = Math.max(320, Math.floor(visibleWidth));
   const n = rows.length;
   const twoLineRoutes = width < 520 && state.country === 'ALL';
   const rowH = twoLineRoutes ? 42 : (width < 520 ? 31 : 29);

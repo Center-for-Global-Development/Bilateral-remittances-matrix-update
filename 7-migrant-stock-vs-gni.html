@@ -31,6 +31,12 @@
 @media (max-width: 520px){.viz-wrapper{padding:11px}.viz-wrapper h1{font-size:var(--title-size-mobile)}.chart-shell{padding:8px}.svg-holder{height:400px}.axis text{font-size:12.2px}.notes{font-size:10.4px}}
 </style>
   <link rel="stylesheet" href="shared/cgd-responsive.css">
+  <style>
+    .popup-pager { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px; }
+    .popup-pager button { min-width:36px; min-height:36px; border:1px solid var(--border); border-radius:8px; background:#fff; color:var(--cgd-teal); font:inherit; font-weight:700; }
+    .popup-pager button:disabled { opacity:.4; }
+    .popup-page-info { color:var(--cgd-dark-gray); font-size:12px; }
+  </style>
 </head>
 <body>
 <div class="viz-wrapper" id="vizRoot">
@@ -103,7 +109,7 @@ const data = JSON.parse(document.getElementById('vizData').textContent);
 const countries = data.countries;
 const destinations = data.destinations;
 const summary = data.summary;
-const state = { metric:'gni', region:'ALL', country:'ALL', activeIncome:null };
+const state = { metric:'gni', region:'ALL', country:'ALL', activeIncome:null, popupCountry:null, popupPage:0 };
 const incomeColours = {
   'Low income':'#FEE8BF',
   'Lower middle income':'#FFB52C',
@@ -262,7 +268,7 @@ function showTooltip(event, d){
 function hideTooltip(){ tooltip.style.opacity=0; tooltip.hidden=true; }
 function renderScatter(){
   const rows = filteredCountries().filter(d => Number.isFinite(xMetric(d)) && Number.isFinite(yMetric(d)) && xMetric(d) > 0);
-  const width = svg.clientWidth || 900; const height = svg.clientHeight || 430; const mobile = width < 520;
+  const width = Math.max(320, Math.min(svg.clientWidth || 900, window.visualViewport?.width || Infinity, document.documentElement.clientWidth || Infinity)); const height = svg.clientHeight || 430; const mobile = width < 520;
   const margin = { top: 26, right: mobile ? 48 : 20, bottom: mobile ? 68 : 58, left: mobile ? 70 : 78 };
   const plot = { left: margin.left, top: margin.top, width: width - margin.left - margin.right, height: height - margin.top - margin.bottom };
   const xDom = xDomain(); const yDom = yDomain(rows); const fmtX = valueFormatterX();
@@ -325,17 +331,33 @@ function openCountryPopup(d){
     {label:'Migrants abroad', value:`${fmtMigrants(d.migrants2021)} → ${fmtMigrants(d.migrants2024)}`, note:`${fmtMigrantsSigned(d.migrantChange)} (${fmtPct(d.migrantChangePct)})`}
   ];
   document.getElementById('popupMetrics').innerHTML = cards.map(c=>`<div class="metric-card"><div class="metric-label">${esc(c.label)}</div><div class="metric-value">${esc(c.value)}</div><div class="metric-note">${esc(c.note)}</div></div>`).join('');
-  const rows = (destinations[d.id] || []).slice(0, 8);
-  document.getElementById('destList').innerHTML = rows.length ? rows.map(r => {
+  state.popupCountry = d.id;
+  state.popupPage = 0;
+  renderDestinationPage();
+  popup.classList.add('open');
+}
+function renderDestinationPage(){
+  const allRows = destinations[state.popupCountry] || [];
+  const pageSize = 3;
+  const pageCount = Math.max(1, Math.ceil(allRows.length / pageSize));
+  state.popupPage = Math.max(0, Math.min(state.popupPage, pageCount - 1));
+  const rows = allRows.slice(state.popupPage * pageSize, state.popupPage * pageSize + pageSize);
+  const list = document.getElementById('destList');
+  const rowHtml = rows.length ? rows.map(r => {
     const changeClass = r.stockChange > 0 ? 'change-pos' : (r.stockChange < 0 ? 'change-neg' : '');
     const pctText = r.stockChangePct == null ? '' : ` (${fmtPct(r.stockChangePct)})`;
     const shareText = `${fmtShare(r.share2021)} → ${fmtShare(r.share2024)}`;
     const stockText = `${fmtMigrants(r.stock2021)} → ${fmtMigrants(r.stock2024)}`;
     return `<div class="dest-row"><div><div class="dest-name">${esc(r.name)}</div><div class="dest-meta">${esc(r.region)} · ${esc(r.income)}</div></div><div class="dest-value"><div class="dest-mini"><span class="lab">2021 stock</span><span class="val">${fmtMigrants(r.stock2021)}</span><span class="lab">2024 stock</span><span class="val">${fmtMigrants(r.stock2024)}</span><span class="lab">Change</span><span class="val ${changeClass}">${fmtMigrantsSigned(r.stockChange)}${pctText}</span><span class="lab">Share of total</span><span class="val">${shareText}</span></div></div></div>`;
   }).join('') : '<div class="select-empty">No destination data available.</div>';
-  popup.classList.add('open');
+  const pager = allRows.length > pageSize ? `<div class="popup-pager"><button type="button" data-popup-page="prev" ${state.popupPage===0?'disabled':''} aria-label="Previous three destinations">â†</button><span class="popup-page-info">${state.popupPage+1} of ${pageCount}</span><button type="button" data-popup-page="next" ${state.popupPage===pageCount-1?'disabled':''} aria-label="Next three destinations">â†’</button></div>` : '';
+  list.innerHTML = rowHtml + pager;
+  list.querySelectorAll('[data-popup-page]').forEach(btn => btn.addEventListener('click', () => {
+    state.popupPage += btn.dataset.popupPage === 'next' ? 1 : -1;
+    renderDestinationPage();
+  }));
 }
-function closePopup(){ popup.classList.remove('open'); }
+function closePopup(){ popup.classList.remove('open'); state.popupCountry=null; state.popupPage=0; }
 function resetCountrySelection(){ if(state.country !== 'ALL'){ state.country='ALL'; closePopup(); updateCountryInput(); render(); } }
 function debounce(fn, ms){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
 function init(){
