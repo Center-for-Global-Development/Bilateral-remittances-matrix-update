@@ -567,6 +567,32 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
   grid-column: 2;
 }
 
+[data-cgd-interactive-name="bilateral-remittances-regions-matrix"].cgd-mobile-embed .controls,
+[data-cgd-interactive-name="bilateral-remittances-income-matrix"].cgd-mobile-embed .controls {
+  grid-template-columns: minmax(0, 1.26fr) minmax(0, .74fr) !important;
+}
+
+[data-cgd-interactive-name="bilateral-remittances-regions-matrix"].cgd-mobile-embed .year-control,
+[data-cgd-interactive-name="bilateral-remittances-regions-matrix"].cgd-mobile-embed .metric-control,
+[data-cgd-interactive-name="bilateral-remittances-income-matrix"].cgd-mobile-embed .year-control,
+[data-cgd-interactive-name="bilateral-remittances-income-matrix"].cgd-mobile-embed .metric-control {
+  display: grid !important;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: center;
+  gap: 6px !important;
+}
+
+[data-cgd-interactive-name="bilateral-remittances-regions-matrix"].cgd-mobile-embed .segmented,
+[data-cgd-interactive-name="bilateral-remittances-income-matrix"].cgd-mobile-embed .segmented {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+[data-cgd-interactive-name="bilateral-remittances-regions-matrix"].cgd-mobile-embed .segmented button,
+[data-cgd-interactive-name="bilateral-remittances-income-matrix"].cgd-mobile-embed .segmented button {
+  padding-inline: 2px !important;
+}
+
 [data-cgd-interactive-name="bilateral-remittances-migrant-stock-gni"].cgd-mobile-embed .metric-control {
   grid-column: 1 / -1;
 }

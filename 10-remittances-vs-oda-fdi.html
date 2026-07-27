@@ -602,13 +602,26 @@ function barStyle(v, scale) {
 function barLabelStyle(v, scale, top) {
   const valPct = (v - scale.min) / scale.span * 100;
   const zero = scale.zeroPct;
-  let x = v >= 0 ? Math.max(zero, valPct) : Math.min(zero, valPct);
+  let x = v >= 0 ? Math.max(zero, valPct) : valPct;
   let transform = 'none';
   let offset = 5;
   let overlap = false;
   if (v >= 0 && x > 82) { transform = 'translateX(-100%)'; offset = -5; overlap = true; }
-  if (v < 0) { transform = 'translateX(-100%)'; offset = -5; overlap = true; }
-  if (v < 0 && x < 18) { transform = 'none'; offset = 5; overlap = false; }
+  if (v < 0) {
+    /*
+      A negative bar occupies valPct..zero. Put its label outside that interval:
+      before the negative endpoint when there is room, otherwise just after
+      zero on the unused positive side. Never render the label over the bar.
+    */
+    if (x >= 22) {
+      transform = 'translateX(-100%)';
+      offset = -5;
+    } else {
+      x = zero;
+      transform = 'none';
+      offset = 5;
+    }
+  }
   return { css: `top:${top - 2}px; left:calc(${x}% + ${offset}px); transform:${transform};`, overlap };
 }
 function flowValueHtml(v, flow) {
