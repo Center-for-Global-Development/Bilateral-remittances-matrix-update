@@ -96,7 +96,7 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 .segmented button,
 .remit-viz__toggle button,
 .toggle button {
-  padding: 8px 10px;
+  padding: 6px 9px;
   font-size: 13px !important;
   line-height: 1.2;
 }
@@ -187,6 +187,14 @@ svg text {
 }
 
 @media (max-width: 520px) {
+  .viz-wrapper h1,
+  .remit-viz h1,
+  #flowExplorer h1,
+  #coverageExplorer h1 {
+    font-size: clamp(20px, 5.8vw, 22px) !important;
+    line-height: 1.14 !important;
+  }
+
   .viz-wrapper,
   .remit-viz,
   #flowExplorer,
@@ -196,13 +204,17 @@ svg text {
 
   .controls,
   .remit-viz__controls {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 10px;
-    padding: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 8px;
   }
 
   .country-picker {
-    grid-column: auto;
+    grid-column: 1 / -1;
+  }
+
+  .metric-control {
+    grid-column: 1 / -1;
   }
 
   .segmented,
@@ -220,20 +232,68 @@ svg text {
     overflow-wrap: normal !important;
     word-break: normal !important;
     hyphens: none !important;
+    padding: 5px 7px !important;
+    font-size: 13px !important;
   }
 
+  /* Keep menus attached to their trigger. Fixed menus can appear far away after
+     an iframe or mobile browser changes the visual viewport. */
   .country-menu,
+  .combo__menu,
+  .select-menu {
+    position: absolute !important;
+    inset-inline: 0 !important;
+    top: calc(100% + 4px) !important;
+    width: auto !important;
+    max-height: min(48dvh, 360px) !important;
+    overflow: auto !important;
+    border-radius: 10px !important;
+    padding: 4px !important;
+  }
+
   .combo__list,
   .country-options {
-    position: fixed;
-    inset-inline: 12px;
-    top: max(72px, env(safe-area-inset-top));
-    width: auto;
-    max-height: min(60dvh, 420px);
+    position: static !important;
+    width: 100% !important;
+    max-width: none !important;
+    max-height: min(38dvh, 300px) !important;
+    overflow: auto !important;
+  }
+
+  .combo__option,
+  .country-option,
+  .select-option {
+    width: 100% !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    text-align: left !important;
+    font-size: 14px !important;
+  }
+
+  .combo__option[aria-selected="true"],
+  .country-option.selected,
+  .select-option.active {
+    background: #eef4f5 !important;
+  }
+
+  /* iOS Safari zooms the page when an editable control below 16px receives
+     focus. Do not suppress user zoom in the viewport meta tag. */
+  input,
+  select,
+  textarea,
+  .combo__search,
+  .country-search,
+  .search-select input {
+    font-size: 16px !important;
   }
 
   .descriptor-tabs {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
   }
 
   .descriptor-tab {
@@ -250,6 +310,31 @@ svg text {
 
   .descriptor-context {
     font-size: 12px !important;
+  }
+
+  .popup-backdrop,
+  .modal-backdrop {
+    align-items: flex-end !important;
+    padding: 0 !important;
+  }
+
+  .popup-card,
+  .modal-card {
+    width: 100% !important;
+    max-width: none !important;
+    max-height: min(82dvh, 680px) !important;
+    border-radius: 16px 16px 0 0 !important;
+    padding: 14px !important;
+    overscroll-behavior: contain;
+  }
+
+  .popup-top,
+  .modal-top {
+    position: sticky;
+    top: -14px;
+    z-index: 2;
+    background: #fff;
+    padding-top: 14px;
   }
 
   .map-shell,
@@ -288,6 +373,14 @@ svg text {
   #coverageExplorer .segmented button {
     overflow: visible !important;
     text-overflow: clip !important;
+  }
+}
+
+/* Fullscreen inside an embedded visual is unreliable or redundant on phones.
+   Hide the control for coarse pointers while leaving desktop support intact. */
+@media (hover: none) and (pointer: coarse), (max-width: 520px) {
+  .fullscreen-btn {
+    display: none !important;
   }
 }
 

@@ -242,8 +242,9 @@ function renderChart(rows){
   const wrap = svg.parentElement;
   const width = Math.max(320, Math.floor(wrap.clientWidth || 900));
   const n = rows.length;
-  const rowH = width < 520 ? 31 : 29;
-  const margin = { top: 22, right: width < 520 ? 58 : 78, bottom: 42, left: width < 520 ? 148 : 226 };
+  const twoLineRoutes = width < 520 && state.country === 'ALL';
+  const rowH = twoLineRoutes ? 42 : (width < 520 ? 31 : 29);
+  const margin = { top: 22, right: width < 520 ? 58 : 78, bottom: 42, left: width < 520 ? 142 : 226 };
   const height = Math.max(240, margin.top + margin.bottom + Math.max(1,n) * rowH + 8);
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
   svg.setAttribute('height', height);
@@ -273,8 +274,16 @@ function renderChart(rows){
   rows.forEach((d,i) => {
     const y = margin.top + i*rowH + rowH/2;
     const group = el('g',{class:'bar-row',tabindex:'0',role:'button','aria-label':`${corridorFullLabel(d)}. 2024 ${fmtPctFromFraction(d.gniShare2024)}; 2021 ${fmtPctFromFraction(d.gniShare2021)}.`});
-    const labelN = width < 520 ? 22 : 42;
-    const txt = el('text',{x:8,y:y+4,class:'row-label'},group); txt.textContent = truncate(rowLabel(d), labelN);
+    if(twoLineRoutes){
+      const sourceTxt=el('text',{x:8,y:y-3,class:'row-label'},group);
+      sourceTxt.textContent=truncate(country(d.source).name,20);
+      const recipientTxt=el('text',{x:8,y:y+11,class:'row-sub'},group);
+      recipientTxt.textContent=`→ ${truncate(country(d.recipient).name,19)}`;
+    }else{
+      const labelN = width < 520 ? 20 : 42;
+      const txt = el('text',{x:8,y:y+4,class:'row-label'},group);
+      txt.textContent = truncate(rowLabel(d), labelN);
+    }
     const has21 = d.gniShare2021 != null && Number.isFinite(d.gniShare2021);
     const has24 = d.gniShare2024 != null && Number.isFinite(d.gniShare2024);
     const x21 = has21 ? scaleX(d.gniShare2021 * 100) : null;

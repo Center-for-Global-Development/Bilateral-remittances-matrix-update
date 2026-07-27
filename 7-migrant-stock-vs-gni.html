@@ -263,7 +263,7 @@ function hideTooltip(){ tooltip.style.opacity=0; tooltip.hidden=true; }
 function renderScatter(){
   const rows = filteredCountries().filter(d => Number.isFinite(xMetric(d)) && Number.isFinite(yMetric(d)) && xMetric(d) > 0);
   const width = svg.clientWidth || 900; const height = svg.clientHeight || 430; const mobile = width < 520;
-  const margin = { top: 26, right: mobile ? 13 : 20, bottom: mobile ? 58 : 58, left: mobile ? 62 : 78 };
+  const margin = { top: 26, right: mobile ? 48 : 20, bottom: mobile ? 68 : 58, left: mobile ? 70 : 78 };
   const plot = { left: margin.left, top: margin.top, width: width - margin.left - margin.right, height: height - margin.top - margin.bottom };
   const xDom = xDomain(); const yDom = yDomain(rows); const fmtX = valueFormatterX();
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`); svg.innerHTML = '';
@@ -274,7 +274,10 @@ function renderScatter(){
   if(yDom[1] > 0){ svg.appendChild(create('rect', {x:plot.left, y:plot.top, width:plot.width, height:Math.max(0, yZero-plot.top), class:'band-positive'})); }
   if(yDom[0] < 0){ svg.appendChild(create('rect', {x:plot.left, y:yZero, width:plot.width, height:Math.max(0, plot.top+plot.height-yZero), class:'band-negative'})); }
 
-  const xTicks = logTicks(xDom); const yTicks = state.metric === 'migration' ? linearTicks(yDom, mobile ? 7 : 8).filter(t => t <= yDom[1] + 1e-9 && t >= yDom[0] - 1e-9) : linearTicks(yDom, mobile ? 5 : 6);
+  const allXTicks = logTicks(xDom);
+  const xTicks = mobile && allXTicks.length > 4 ? allXTicks.filter((_,i)=>i===0||i===allXTicks.length-1||i===Math.round((allXTicks.length-1)/3)||i===Math.round((allXTicks.length-1)*2/3)) : allXTicks;
+  const yTicks = linearTicks(yDom, state.metric === 'migration' ? (mobile ? 5 : 8) : (mobile ? 4 : 6))
+    .filter(t => t <= yDom[1] + 1e-9 && t >= yDom[0] - 1e-9);
   xTicks.forEach(t => { const x = xScale(t, plot, xDom); svg.appendChild(create('line', {x1:x, x2:x, y1:plot.top, y2:plot.top+plot.height, class:'grid-line'})); });
   yTicks.forEach(t => { const y = yScaleLinear(t, plot, yDom); svg.appendChild(create('line', {x1:plot.left, x2:plot.left+plot.width, y1:y, y2:y, class:'grid-line'})); });
 
@@ -287,8 +290,8 @@ function renderScatter(){
   xTicks.forEach(t => { const x = xScale(t, plot, xDom); xAxis.appendChild(create('line', {x1:x,x2:x,y1:plot.top+plot.height,y2:plot.top+plot.height+4})); xAxis.appendChild(create('text', {x:x, y:plot.top+plot.height+18, 'text-anchor':'middle'}, fmtX(t))); });
   yTicks.forEach(t => { const y = yScaleLinear(t, plot, yDom); yAxis.appendChild(create('line', {x1:plot.left-4,x2:plot.left,y1:y,y2:y})); yAxis.appendChild(create('text', {x:plot.left-8, y:y+4, 'text-anchor':'end'}, fmtPctAxis(t))); });
 
-  const xLabel = state.metric === 'migration' ? 'Migrants abroad, 2021' : 'Weighted average destination GNI per capita, 2021';
-  const yLabel = state.metric === 'migration' ? 'Growth in migrants abroad, 2021–24' : 'Change in weighted average destination GNI per capita, 2021–24';
+  const xLabel = state.metric === 'migration' ? 'Migrants abroad, 2021' : (mobile ? 'Destination GNI per capita, 2021' : 'Weighted average destination GNI per capita, 2021');
+  const yLabel = state.metric === 'migration' ? 'Growth in migrants abroad, 2021–24' : (mobile ? 'Change in destination GNI per capita, 2021–24' : 'Change in weighted average destination GNI per capita, 2021–24');
   svg.appendChild(create('text', {x:plot.left + plot.width/2, y:height-11, class:'axis-title', 'text-anchor':'middle'}, xLabel));
   svg.appendChild(create('text', {x:15, y:plot.top + plot.height/2, class:'axis-title', 'text-anchor':'middle', transform:`rotate(-90 15 ${plot.top + plot.height/2})`}, yLabel));
 

@@ -556,18 +556,32 @@ function renderStatusChart(data) {
   const width=Math.max(300, el.clientWidth||900);
   const compact=width<560;
   const veryNarrow=width<430;
-  const margin={top:6,right:compact?58:96,bottom:22,left:veryNarrow?214:(compact?232:294)};
-  const rowH=compact?33:35, barH=compact?13:16;
+  const mobileLabels={
+    'No migrant-stock record':'No migrant-stock record',
+    'Recipient had no positive usable corridor score':'No usable corridor score',
+    'Source-reported zero migrant stock':'Source-reported zero stock',
+    'Missing source-country income':'Missing source income',
+    'Missing recipient-country income':'Missing recipient income',
+    'Missing income for both countries':'Missing both incomes'
+  };
+  const margin=veryNarrow
+    ? {top:4,right:54,bottom:22,left:8}
+    : {top:6,right:compact?58:96,bottom:22,left:compact?232:294};
+  const rowH=veryNarrow?42:(compact?33:35), barH=veryNarrow?11:(compact?13:16);
   const height=margin.top+margin.bottom+rowH*items.length;
-  const innerW=Math.max(52,width-margin.left-margin.right);
+  const innerW=Math.max(90,width-margin.left-margin.right);
   const max=Math.max(...items.map(d=>d.count),1);
   el.setAttribute('viewBox',`0 0 ${width} ${height}`); el.setAttribute('height',height);
   let svg='';
-  (veryNarrow?[0,1]:[0,.5,1]).forEach(t=>{const x=margin.left+innerW*t; svg+=`<line class="gridline" x1="${x}" y1="${margin.top}" x2="${x}" y2="${height-margin.bottom}"></line><text class="axis-label" x="${x}" y="${height-6}" text-anchor="middle">${t===0?'0':fmtInt(max*t)}</text>`;});
+  (veryNarrow?[0,1]:[0,.5,1]).forEach(t=>{const x=margin.left+innerW*t; svg+=`<line class="gridline" x1="${x}" y1="${margin.top}" x2="${x}" y2="${height-margin.bottom}"></line><text class="axis-label" x="${x}" y="${height-6}" text-anchor="${veryNarrow&&t===1?'end':'middle'}">${t===0?'0':fmtInt(max*t)}</text>`;});
   items.forEach((d,i)=>{
-    const y=margin.top+i*rowH+8, w=innerW*d.count/max, valueLabel=compact?fmtPct(d.share):`${fmtPct(d.share)}  (${fmtInt(d.count)})`;
+    const y=margin.top+i*rowH+(veryNarrow?20:8), w=innerW*d.count/max, valueLabel=compact?fmtPct(d.share):`${fmtPct(d.share)}  (${fmtInt(d.count)})`;
     const labelY=y+barH/2+3;
-    svg+=`${wrappedTextSvg(d.label, margin.left-9, labelY, veryNarrow?26:(compact?31:42))}<rect x="${margin.left}" y="${y}" rx="6" ry="6" width="${w}" height="${barH}" fill="var(--cgd-teal)" data-kind="status" data-label="${escapeHtml(d.label)}" data-count="${d.count}" data-share="${d.share}"></rect><text class="bar-label" x="${margin.left+w+6}" y="${y+barH-2}">${valueLabel}</text>`;
+    const label=mobileLabels[d.label]||d.label;
+    const labelSvg=veryNarrow
+      ? `<text class="category-label" x="${margin.left}" y="${y-6}">${escapeHtml(label)}</text>`
+      : wrappedTextSvg(label, margin.left-9, labelY, compact?31:42);
+    svg+=`${labelSvg}<rect x="${margin.left}" y="${y}" rx="6" ry="6" width="${w}" height="${barH}" fill="var(--cgd-teal)" data-kind="status" data-label="${escapeHtml(d.label)}" data-count="${d.count}" data-share="${d.share}"></rect><text class="bar-label" x="${Math.min(margin.left+w+6,width-margin.right+6)}" y="${y+barH-2}">${valueLabel}</text>`;
   });
   el.innerHTML=svg;
   el.querySelectorAll('rect[data-kind="status"]').forEach(node=>{node.addEventListener('mousemove',evt=>showTooltip(evt,`<strong>${node.dataset.label}</strong><br>${fmtInt(node.dataset.count)} corridors<br>${fmtPct(node.dataset.share)} of corridors in ${state.year}`)); node.addEventListener('mouseleave',hideTooltip);});

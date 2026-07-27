@@ -291,13 +291,16 @@ svg{display:block;width:100%;height:100%}
     const box = svg.getBoundingClientRect();
     const width = Math.max(320, box.width || 900);
     const height = Math.max(320, box.height || 430);
-    const margin = width < 520 ? {top:18,right:12,bottom:54,left:54} : {top:18,right:20,bottom:58,left:72};
+    const margin = width < 520 ? {top:18,right:12,bottom:62,left:74} : {top:18,right:20,bottom:58,left:72};
     const innerW = width - margin.left - margin.right;
     const innerH = height - margin.top - margin.bottom;
     const domain = niceLogDomain(rows);
     const x = logScale(domain, [margin.left, margin.left + innerW]);
     const y = logScale(domain, [margin.top + innerH, margin.top]);
-    const ticks = ticksFor(domain);
+    const allTicks = ticksFor(domain);
+    const ticks = width < 520 && allTicks.length > 5
+      ? allTicks.filter((_,i) => i===0 || i===allTicks.length-1 || i===Math.round((allTicks.length-1)/3) || i===Math.round((allTicks.length-1)*2/3))
+      : allTicks;
     const pointRows = rows.slice().sort((a,b) => b.v2024 - a.v2024);
     const selected = rows.find(d => d.id === state.country);
     const out = [];
@@ -339,10 +342,12 @@ svg{display:block;width:100%;height:100%}
       el.addEventListener('mouseleave', hideTooltip);
       el.addEventListener('click', e => {
         e.stopPropagation();
+        const coords={clientX:e.clientX,clientY:e.clientY};
+        tooltipPinned=true;
         state.country = d.id;
         updateCountryInput();
         render();
-        showTip(d,e);
+        requestAnimationFrame(()=>showTip(d,coords));
       });
       el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); state.country = d.id; updateCountryInput(); render(); } });
     });
@@ -352,6 +357,7 @@ svg{display:block;width:100%;height:100%}
     if (!d) return;
     showTooltip(`<strong>${esc(d.name)}</strong><div class="tooltip-grid"><span>Region</span><b>${esc(d.region)}</b><span>Income group</span><b>${esc(d.income)}</b><span>2021 inflows</span><b>${fmtMoneyFull(d.v2021)}</b><span>2024 inflows</span><b>${fmtMoneyFull(d.v2024)}</b><span>Change</span><b>${fmtChange(d.change)} (${fmtPct(d.pctChange)})</b></div>`, e);
   }
+  let tooltipPinned=false;
   function showTooltip(html,e) { tooltip.innerHTML = html; tooltip.hidden=false; tooltip.style.opacity=1; moveTooltip(e); }
   function moveTooltip(e) {
     const pad=14;
@@ -363,7 +369,19 @@ svg{display:block;width:100%;height:100%}
     if (r.top < pad) y = e.clientY + 20;
     tooltip.style.left=x+'px'; tooltip.style.top=y+'px';
   }
-  function hideTooltip() { tooltip.style.opacity=0; tooltip.hidden=true; }
+  function hideTooltip(force=false) { if(tooltipPinned&&!force)return; tooltip.style.opacity=0; tooltip.hidden=true; }
+
+  svg.addEventListener('click', e => {
+    if(e.target.closest?.('.point')) return;
+    tooltipPinned=false;
+    hideTooltip(true);
+    if(state.country!=='ALL'){ state.country='ALL'; updateCountryInput(); render(); }
+  });
+  document.addEventListener('click', e => {
+    if(e.target.closest?.('.point') || e.target.closest?.('.tooltip')) return;
+    tooltipPinned=false;
+    hideTooltip(true);
+  });
 
   function render() {
     renderLegend();

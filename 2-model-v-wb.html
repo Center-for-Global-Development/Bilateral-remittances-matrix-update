@@ -579,8 +579,7 @@ body { font-size: var(--body-size); }
     legendEl.innerHTML = [
       `<span class="remit-viz__legend-item"><span class="remit-viz__swatch" style="background:${COLORS.teal}"></span>Model higher</span>`,
       `<span class="remit-viz__legend-item"><span class="remit-viz__swatch" style="background:${COLORS.tealGray}"></span>Broadly similar</span>`,
-      `<span class="remit-viz__legend-item"><span class="remit-viz__swatch" style="background:${COLORS.gold}"></span>World Bank higher</span>`,
-      state.country !== 'ALL' ? `<span class="remit-viz__legend-item"><span class="remit-viz__swatch" style="background:${COLORS.red}"></span>Selected country</span>` : ''
+      `<span class="remit-viz__legend-item"><span class="remit-viz__swatch" style="background:${COLORS.gold}"></span>World Bank higher</span>`
     ].join('');
   }
 
@@ -592,8 +591,8 @@ body { font-size: var(--body-size); }
     const base = [0, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12, 1e13].filter(t => t <= maxVal);
     if (!base.includes(maxVal)) base.push(maxVal);
     const small = width < 600;
-    if (!small || base.length <= 6) return base;
-    return base.filter((_, i) => i === 0 || i === base.length - 1 || i % 2 === 0);
+    if (!small || base.length <= 4) return base;
+    return base.filter((_, i) => i === 0 || i === base.length - 1 || i === Math.round((base.length-1)/3) || i === Math.round((base.length-1)*2/3));
   }
   const SCALE_CONSTANT = 1e6;
   function scaleLog(v, domainMax, rangeMin, rangeMax) {
@@ -678,7 +677,7 @@ body { font-size: var(--body-size); }
     const selected = selectedCountry();
     const width = Math.max(320, Math.floor(chartWrap.clientWidth));
     const height = width < 560 ? 370 : 430;
-    const margin = { top: 12, right: 18, bottom: width < 560 ? 56 : 62, left: width < 560 ? 50 : 68 };
+    const margin = { top: 12, right: 18, bottom: width < 560 ? 66 : 62, left: width < 560 ? 68 : 68 };
     const innerW = width - margin.left - margin.right;
     const innerH = height - margin.top - margin.bottom;
     const maxRaw = Math.max(1, ...data.flatMap(d => [valueOf(d, 'model'), valueOf(d, 'wb')]));
@@ -718,9 +717,9 @@ body { font-size: var(--body-size); }
     addPillLabel(plot, { x: equalLabel.x, y: equalLabel.y, 'text-anchor': equalLabel.anchor, class: 'equal-label' }, 'Equal values', 'equal-label-bg');
     labelBoxes.push(equalLabel.box);
 
-    const xTitle = makeEl('text', { x: margin.left + innerW / 2, y: height - 21, 'text-anchor': 'middle', class: 'axis-title' }, 'World Bank remittances sent (current US$)');
+    const xTitle = makeEl('text', { x: margin.left + innerW / 2, y: height - 21, 'text-anchor': 'middle', class: 'axis-title' }, width < 560 ? 'World Bank remittances sent' : 'World Bank remittances sent (current US$)');
     svg.appendChild(xTitle);
-    const yTitle = makeEl('text', { x: 16, y: margin.top + innerH / 2, transform: `rotate(-90, 16, ${margin.top + innerH / 2})`, 'text-anchor': 'middle', class: 'axis-title' }, 'Modelled remittances sent (current US$)');
+    const yTitle = makeEl('text', { x: 16, y: margin.top + innerH / 2, transform: `rotate(-90, 16, ${margin.top + innerH / 2})`, 'text-anchor': 'middle', class: 'axis-title' }, width < 560 ? 'Modelled remittances sent' : 'Modelled remittances sent (current US$)');
     svg.appendChild(yTitle);
 
     const pointsG = makeEl('g', {});
@@ -747,10 +746,12 @@ body { font-size: var(--body-size); }
       c.addEventListener('blur', hideTooltip);
       c.addEventListener('click', ev => {
         ev.stopPropagation();
-        hideTooltip();
+        const coords = pointerCoords(ev);
+        tooltipPinned = true;
         state.country = d.code;
         countrySelect.updateOptions(countryOptions(), state.country);
         updateAllViews();
+        window.requestAnimationFrame(() => showTooltip(coords || ev, d));
       });
       pointsG.appendChild(c);
     });
@@ -772,6 +773,7 @@ body { font-size: var(--body-size); }
     chartWrap.appendChild(svg);
   }
 
+  let tooltipPinned = false;
   function showTooltip(ev, d) {
     const model = valueOf(d, 'model'), wb = valueOf(d, 'wb'), gap = model - wb, ratio = wb > 0 ? model / wb : null;
     const pctGap = wb > 0 ? ((gap / wb) * 100) : null;
@@ -827,7 +829,10 @@ body { font-size: var(--body-size); }
     tooltip.style.left = `${left}px`;
     tooltip.style.top = `${top}px`;
   }
-  function hideTooltip() { tooltip.hidden = true; }
+  function hideTooltip(force = false) {
+    if (tooltipPinned && !force) return;
+    tooltip.hidden = true;
+  }
 
   function updateAllViews() {
     updateCards();
@@ -854,14 +859,19 @@ body { font-size: var(--body-size); }
   window.addEventListener('resize', () => { window.clearTimeout(window.__remitResize); window.__remitResize = window.setTimeout(renderChart, 120); });
   chartWrap.addEventListener('click', e => {
     if (e.target.closest && e.target.closest('.point')) return;
-    hideTooltip();
+    tooltipPinned = false;
+    hideTooltip(true);
     if (state.country !== 'ALL') {
       state.country = 'ALL';
       countrySelect.updateOptions(countryOptions(), state.country);
       updateAllViews();
     }
   });
-  wrapper.addEventListener('click', e => { if (e.target === wrapper) hideTooltip(); });
+  document.addEventListener('click', e => {
+    if (e.target.closest?.('.point') || e.target.closest?.('.remit-tooltip')) return;
+    tooltipPinned = false;
+    hideTooltip(true);
+  });
 
   updateAllViews();
 })();

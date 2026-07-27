@@ -437,7 +437,18 @@ body { font-size: var(--body-size); }
     hideTooltip();
     render();
   }
-  function openPicker() { currentOptions = getOptions(); picker.classList.add('open'); pickerMenu.hidden = false; pickerTrigger.setAttribute('aria-expanded','true'); pickerSearch.value = ''; renderPickerOptions(); setTimeout(()=>pickerSearch.focus(), 0); }
+  function openPicker() {
+    currentOptions = getOptions();
+    picker.classList.add('open');
+    pickerMenu.hidden = false;
+    pickerTrigger.setAttribute('aria-expanded','true');
+    pickerSearch.value = '';
+    renderPickerOptions();
+    /* Do not summon the on-screen keyboard merely by opening the picker. */
+    if (window.matchMedia('(min-width: 521px) and (pointer: fine)').matches) {
+      setTimeout(()=>pickerSearch.focus(), 0);
+    }
+  }
   function renderPickerOptions() {
     currentOptions = getOptions();
     const q = pickerSearch.value.trim().toLowerCase();

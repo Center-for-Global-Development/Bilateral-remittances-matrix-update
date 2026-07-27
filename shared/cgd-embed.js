@@ -106,12 +106,14 @@
       ['#yearToggle button', 'filter', 'year'],
       ['#metricToggle button', 'view_control', 'metric'],
       ['#heatGrid button, #heatGrid [role="button"]', 'detail_open', 'matrix_cell'],
+      ['[data-popup-page]', 'navigate', 'corridor_page'],
       ['#popupClose', 'detail_close', 'matrix_cell']
     ],
     '6-remittance-flows-incomes.html': [
       ['#yearToggle button', 'filter', 'year'],
       ['#metricToggle button', 'view_control', 'metric'],
       ['#heatGrid button, #heatGrid [role="button"]', 'detail_open', 'matrix_cell'],
+      ['[data-popup-page]', 'navigate', 'corridor_page'],
       ['#popupClose', 'detail_close', 'matrix_cell']
     ],
     '7-migrant-stock-vs-gni.html': [
