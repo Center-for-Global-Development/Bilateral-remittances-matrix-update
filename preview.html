@@ -65,6 +65,10 @@
       font-size: 15px;
     }
 
+    .intro a {
+      color: var(--cgd-light-teal);
+    }
+
     .contents {
       margin: 18px 0 0;
       padding: 16px 18px;
@@ -196,8 +200,9 @@
   <header>
     <h1>Bilateral remittances matrix update — visualisations preview</h1>
     <p class="intro">
-      This page previews the interactive visualisations accompanying the bilateral remittances matrix update.
-      The final versions of the graphics may differ: please do make suggestions for improvements.
+      This page previews the interactive visualisations accompanying the bilateral remittances matrix update,
+      hosted by the Center for Global Development. View the
+      <a href="https://github.com/Center-for-Global-Development/Bilateral-remittances-matrix-update">source repository on GitHub</a>.
     </p>
 
     <nav class="contents" aria-label="Visualisation list">
@@ -437,13 +442,53 @@
 
   <footer>
     <p>
-      Note: this preview page is for review only. The final digital note may use different surrounding text,
-      spacing, or iframe heights.
+      Note: this preview page is for review only. The production digital note may use different surrounding text
+      and spacing. Iframe heights are content-driven and update automatically.
     </p>
   </footer>
 </main>
 
 <script>
+  const MAX_IFRAME_HEIGHT = 20000;
+  const VALID_ANALYTICS_EVENTS = new Set(["interactive_view", "interactive_engagement"]);
+  window.CGDPreviewAnalytics = [];
+
+  function frameForSource(source) {
+    return Array.from(document.querySelectorAll("iframe.auto-height-frame"))
+      .find(frame => frame.contentWindow === source);
+  }
+
+  window.addEventListener("message", function (event) {
+    if (event.origin !== location.origin || !event.data) return;
+
+    const frame = frameForSource(event.source);
+    if (!frame) return;
+
+    if (event.data.type === "cgd-iframe-resize") {
+      let height = Number(event.data.height);
+      if (!Number.isFinite(height) || height <= 0) return;
+      height = Math.min(Math.ceil(height), MAX_IFRAME_HEIGHT);
+      frame.style.height = height + "px";
+      frame.setAttribute("scrolling", "no");
+      frame.dataset.resizeSource = "message";
+      return;
+    }
+
+    if (
+      event.data.type === "cgd_analytics" &&
+      VALID_ANALYTICS_EVENTS.has(event.data.event) &&
+      typeof event.data.interactive_name === "string"
+    ) {
+      window.CGDPreviewAnalytics.push({
+        event: event.data.event,
+        interactive_name: event.data.interactive_name,
+        action_type: event.data.action_type,
+        action_label: event.data.action_label,
+        action_value: event.data.action_value
+      });
+    }
+  });
+
   function getFrameDocument(frame) {
     return frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
   }
@@ -456,6 +501,8 @@
 
   function resizeFrame(frame) {
     try {
+      if (frame.dataset.resizeSource === "message") return;
+
       /*
         First temporarily collapse the iframe so the child document's scrollHeight
         is not inflated by the previous iframe height. This is what allows large

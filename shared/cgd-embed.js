@@ -1,15 +1,34 @@
 (function () {
   'use strict';
 
-  const PARENT_ORIGIN = 'https://www.cgdev.org';
+  const PRODUCTION_PARENT_ORIGIN = 'https://www.cgdev.org';
+  const PREVIEW_PARENT_ORIGINS = new Set([
+    'https://center-for-global-development.github.io'
+  ]);
   const interactiveName = document.documentElement.dataset.cgdInteractiveName;
   let lastHeight = 0;
   let viewSent = false;
   let activeDetailLabel = '';
 
+  function targetParentOrigin() {
+    try {
+      const referrer = new URL(document.referrer);
+      if (PREVIEW_PARENT_ORIGINS.has(referrer.origin)) return referrer.origin;
+      if (
+        referrer.protocol === 'http:' &&
+        (referrer.hostname === '127.0.0.1' || referrer.hostname === 'localhost')
+      ) {
+        return referrer.origin;
+      }
+    } catch (error) {
+      // No usable referrer: retain the production-only target.
+    }
+    return PRODUCTION_PARENT_ORIGIN;
+  }
+
   function postToParent(message) {
     if (window.parent === window) return;
-    window.parent.postMessage(message, PARENT_ORIGIN);
+    window.parent.postMessage(message, targetParentOrigin());
   }
 
   function reportHeight() {

@@ -214,10 +214,12 @@ svg text {
   .segmented button,
   .remit-viz__toggle button,
   .toggle button {
-    flex: 1 1 0;
+    flex: 1 1 auto;
     min-width: 0;
-    white-space: normal;
-    overflow-wrap: anywhere;
+    white-space: nowrap !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+    hyphens: none !important;
   }
 
   .country-menu,
@@ -256,12 +258,49 @@ svg text {
   .plot-wrap {
     min-width: 0;
   }
+
+  #coverageExplorer .controls {
+    display: grid !important;
+    grid-template-columns: minmax(112px, 0.85fr) minmax(146px, 1.15fr) !important;
+    align-items: end !important;
+    gap: 10px 8px !important;
+    padding: 10px !important;
+  }
+
+  #coverageExplorer .controls > .control-group {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    flex: none !important;
+  }
+
+  #coverageExplorer .segmented {
+    width: 100% !important;
+  }
+
+  #coverageExplorer .control-label,
+  #coverageExplorer .segmented button {
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+    hyphens: none !important;
+  }
+
+  #coverageExplorer .segmented button {
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
 }
 
 @media (max-width: 360px) {
   .controls,
   .remit-viz__controls {
     padding-inline: 8px;
+  }
+
+  #coverageExplorer .controls {
+    grid-template-columns: minmax(106px, 0.82fr) minmax(140px, 1.18fr) !important;
+    gap: 8px 6px !important;
+    padding-inline: 8px !important;
   }
 }
 

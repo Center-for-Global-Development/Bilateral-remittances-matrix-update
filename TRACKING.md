@@ -4,7 +4,8 @@ All 12 visualisations use the CGD iframe analytics contract:
 
 - `interactive_view` is sent once after the child page loads.
 - Meaningful controls send `interactive_engagement`.
-- Messages are flat objects sent only to `https://www.cgdev.org`.
+- Production messages are flat objects sent only to `https://www.cgdev.org`.
+- The organisational GitHub Pages preview is an explicit non-production exception: children use the exact referrer origin `https://center-for-global-development.github.io`, and `preview.html` validates and retains events locally without forwarding them to GA4.
 - `interactive_name` is stable, unique, and kebab-case.
 - `action_label` is stable and snake_case.
 
