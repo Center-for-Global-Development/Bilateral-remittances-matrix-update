@@ -450,21 +450,8 @@
 
   function measureFrameHeight(frame) {
     const doc = getFrameDocument(frame);
-    if (!doc) return null;
-
-    const body = doc.body;
-    const root = doc.documentElement;
-
-    /*
-      Do not include clientHeight here. clientHeight reflects the iframe's
-      current viewport height, so including it prevents frames from shrinking.
-    */
-    return Math.ceil(Math.max(
-      body ? body.scrollHeight : 0,
-      body ? body.offsetHeight : 0,
-      root ? root.scrollHeight : 0,
-      root ? root.offsetHeight : 0
-    ));
+    if (!doc || !doc.body) return null;
+    return Math.ceil(doc.body.getBoundingClientRect().height);
   }
 
   function resizeFrame(frame) {
@@ -481,14 +468,8 @@
           const measuredHeight = measureFrameHeight(frame);
           if (!measuredHeight) return;
 
-          const minHeight = Number(frame.dataset.minHeight || 320);
-          const maxHeight = Number(frame.dataset.maxHeight || 2200);
           const padding = Number(frame.dataset.heightPadding || 8);
-
-          const finalHeight = Math.min(
-            Math.max(measuredHeight + padding, minHeight),
-            maxHeight
-          );
+          const finalHeight = Math.max(measuredHeight + padding, 1);
 
           frame.style.height = finalHeight + "px";
           frame.setAttribute("scrolling", "no");
@@ -521,10 +502,9 @@
       try {
         const doc = getFrameDocument(frame);
 
-        if ("ResizeObserver" in window && doc && doc.documentElement) {
+        if ("ResizeObserver" in window && doc && doc.body) {
           const observer = new ResizeObserver(scheduleResize);
-          observer.observe(doc.documentElement);
-          if (doc.body) observer.observe(doc.body);
+          observer.observe(doc.body);
         }
 
         setTimeout(scheduleResize, 150);

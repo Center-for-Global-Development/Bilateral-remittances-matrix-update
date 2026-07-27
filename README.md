@@ -50,22 +50,26 @@ https://samhuckstep.github.io/Bilateral-remittances-matrix-update/preview.html
 
 ## Embedding
 
-Each visualisation can be embedded in a digital note using an iframe. For example:
+Each visualisation contains the standard CGD child-side resize and analytics code. Embed it with a full-width iframe whose initial height is only a loading placeholder:
 
 ```html
 <iframe
-  src="https://samhuckstep.github.io/Bilateral-remittances-matrix-update/1-data-coverage-gaps.html"
-  width="100%"
-  height="720"
-  style="border:0; display:block; margin:0 auto;"
-  loading="lazy"
+  src="https://center-for-global-development.github.io/Bilateral-remittances-matrix-update/1-data-coverage-gaps.html"
   title="Data coverage gaps in the bilateral remittance model"
-  allowfullscreen
-  allow="fullscreen">
+  loading="lazy"
+  scrolling="no"
+  style="display:block;width:100%;height:600px;border:0"
+>
 </iframe>
 ```
 
-The `height` value should be adjusted for each visualisation if needed. The `loading="lazy"` attribute helps avoid loading all embedded charts at once when several visualisations appear on the same page.
+The child reports its content height with `{ type: "cgd-iframe-resize", height }`; the CGD parent listener applies that height after validating the child origin. Do not tune a permanent fixed height. The iframe reports again after width changes, font loading, filter changes, dialogs, or other content reflow.
+
+Production hosting must use an origin on the CGD resize listener's allowlist. At present that includes `https://center-for-global-development.github.io` and CGD Workers subdomains. The `samhuckstep.github.io` links above are useful for direct preview but will not resize inside the CGD parent unless communications explicitly adds that origin. Analytics and resize have separate allowlists and both must be checked after deployment.
+
+The parent listener is already deployed on CGD and must not be copied into an individual visualisation. For local or same-origin preview, `preview.html` measures its child frames directly because a child correctly addressed to `https://www.cgdev.org` cannot resize a localhost parent.
+
+Interaction events are documented in [TRACKING.md](TRACKING.md). Do not add a separate analytics tag inside an iframe.
 
 ## Notes
 

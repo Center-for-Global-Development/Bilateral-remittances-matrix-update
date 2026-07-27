@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-cgd-interactive-name="bilateral-remittances-data-coverage">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -453,6 +453,7 @@ html { scrollbar-gutter: stable; }
 }
 
 </style>
+  <link rel="stylesheet" href="shared/cgd-responsive.css">
 </head>
 <body>
 <div id="coverageExplorer" class="viz-wrapper">
@@ -562,7 +563,7 @@ function renderStatusChart(data) {
   const max=Math.max(...items.map(d=>d.count),1);
   el.setAttribute('viewBox',`0 0 ${width} ${height}`); el.setAttribute('height',height);
   let svg='';
-  [0,.5,1].forEach(t=>{const x=margin.left+innerW*t; svg+=`<line class="gridline" x1="${x}" y1="${margin.top}" x2="${x}" y2="${height-margin.bottom}"></line><text class="axis-label" x="${x}" y="${height-6}" text-anchor="middle">${t===0?'0':fmtInt(max*t)}</text>`;});
+  (veryNarrow?[0,1]:[0,.5,1]).forEach(t=>{const x=margin.left+innerW*t; svg+=`<line class="gridline" x1="${x}" y1="${margin.top}" x2="${x}" y2="${height-margin.bottom}"></line><text class="axis-label" x="${x}" y="${height-6}" text-anchor="middle">${t===0?'0':fmtInt(max*t)}</text>`;});
   items.forEach((d,i)=>{
     const y=margin.top+i*rowH+8, w=innerW*d.count/max, valueLabel=compact?fmtPct(d.share):`${fmtPct(d.share)}  (${fmtInt(d.count)})`;
     const labelY=y+barH/2+3;
@@ -699,4 +700,5 @@ document.addEventListener('fullscreenchange',()=>{ syncFullscreenButton(); reque
 window.addEventListener('resize',()=>requestAnimationFrame(render));
 syncFullscreenButton(); render();
 </script>
+  <script src="shared/cgd-embed.js"></script>
 </body></html>
