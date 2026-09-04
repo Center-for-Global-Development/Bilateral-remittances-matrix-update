@@ -3,6 +3,12 @@
      controls are separated by at least 6px. Do not turn every pill into a
      44px-high block on phones. */
   --cgd-control-min: 34px;
+  /* A segmented button sits inside 3px of bank padding and a 1px border, so it
+     must be 8px shorter than the bank for the bank to come out at the house
+     control height. Declared once because it is set in two places (the base
+     rule and the compact override) and they drifted apart. 26px still clears
+     the 24px tap-target floor. */
+  --cgd-control-inner: calc(var(--cgd-control-min) - 8px);
   --cgd-icon-target: 44px;
   --cgd-body-size: 14px;
   --cgd-secondary-size: 12px;
@@ -91,20 +97,80 @@ select,
   font-size: var(--cgd-body-size) !important;
 }
 
+/* One control height for the whole set.
+ *
+ * This block used to say `min-height: var(--cgd-control-min); height: auto`,
+ * which left every control's height to its own font-size and padding. Because
+ * those differ by control type, no two kinds of control lined up: at 1200px a
+ * segmented toggle came out 42px (its buttons were forced to 34px, plus 3px
+ * padding each side and the border), a search input 42px (16px text, 8px
+ * padding), a native select 36px (14px text), a country trigger 34px, and
+ * figure 7's combo input 34.4px. Nine of the twelve figures had two or three
+ * different control heights sitting side by side.
+ *
+ * 34px is the documented house height and the one `.country-trigger` already
+ * rendered at, so everything else comes to it. Single-line controls take a
+ * fixed height with no vertical padding — a select, input and button all centre
+ * their own text, so the 14px and 16px controls still align — and the segmented
+ * pill bank keeps a min-height so it can still grow when it wraps to two rows
+ * below 400px.
+ */
 select,
 input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 .country-trigger,
 .combo__button,
 .select-trigger,
-.segmented button,
-.remit-viz__toggle button,
-.toggle button,
 .pager-btn,
 .zoom-btn {
+  height: var(--cgd-control-min) !important;
   min-height: var(--cgd-control-min) !important;
-  height: auto !important;
+  padding-block: 0 !important;
 }
 
+/* Native selects were reserving 30px of right padding for a chevron they do not
+ * draw. None of them sets `appearance: none` or a background arrow, so the
+ * browser draws and reserves space for its own control — the 30px was 20px of
+ * dead width on top of that, and it was enough to truncate the label: figure 3's
+ * income filter read "All income g" at every width, with 113px of text in 97px
+ * of room.
+ *
+ * These lists are all short (income groups, regions, a corridor count), so above
+ * the compact breakpoint the select simply takes the width its widest option
+ * needs and the control bank grows to suit. Below it the bank is a fixed grid,
+ * where a wider select would overflow the row, so there it relies on the
+ * recovered padding instead. qa/audit.py fails any select whose selected option
+ * does not fit. */
+.controls select,
+.remit-viz__controls select {
+  padding-inline: 9px 20px !important;
+}
+
+@media (min-width: 601px) {
+  .controls select,
+  .remit-viz__controls select {
+    /* max-content, not fit-content: fit-content resolved against the available
+       space here and left the select at 108px against 113px of text. The flex
+       items carry min-width:0, so the floor has to come from the select. */
+    min-width: max-content;
+  }
+
+  /* The group must not shrink below what its select needs, or min-width above
+     just makes the select overflow its own group.
+     `flex-basis`, not `min-width`: figure 10's bank is a GRID at these widths,
+     and a grid item with min-width:max-content overflows its track and lands on
+     top of its neighbour — which is exactly what happened. Grid ignores
+     flex-basis and flex-shrink, so this reaches only the flex banks that need
+     it, and figure 10's grid keeps its own column widths. */
+  .controls > .control-group:has(select),
+  .remit-viz__controls > *:has(select) {
+    flex-basis: max-content;
+    flex-shrink: 0;
+  }
+}
+
+
+/* The pill bank is 34px overall: 26px buttons inside 3px of padding and a 1px
+   border. 26px still clears the 24px tap-target floor that qa/audit.py checks. */
 .segmented,
 .remit-viz__toggle,
 .toggle {
@@ -114,7 +180,9 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 .segmented button,
 .remit-viz__toggle button,
 .toggle button {
-  padding: 6px 9px;
+  min-height: var(--cgd-control-inner) !important;
+  height: var(--cgd-control-inner) !important;
+  padding: 0 9px;
   font-size: 13px !important;
   line-height: 1.2;
 }
@@ -445,7 +513,10 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 .cgd-mobile-embed .toggle button {
   flex: 1 1 0;
   min-width: 0;
-  min-height: var(--cgd-control-min) !important;
+  /* Was --cgd-control-min, i.e. the height of the whole bank, which pushed the
+     bank itself to 40-42px on phones while every other control stayed at 34. */
+  min-height: var(--cgd-control-inner) !important;
+  height: var(--cgd-control-inner) !important;
   white-space: nowrap !important;
   overflow-wrap: normal !important;
   word-break: normal !important;
@@ -728,5 +799,32 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* One control per row below ~420px.
+ *
+ * Half of a 320px control bank is about 136px. A native select showing
+ * "All income groups" needs ~160px, because selects keep 16px text on phones so
+ * that iOS does not zoom the page when one is focused — so at these widths the
+ * two-column pairings above cannot hold without truncating a label.
+ *
+ * Giving only the select a full row left its partner alone in a half row, which
+ * is the "singleton half-row" the note further up forbids. So every control gets
+ * the full width instead: nothing is truncated, every occupied row is complete,
+ * and each control is comfortably tappable. It costs vertical space on the
+ * narrowest phones, which is the right trade against an unreadable filter.
+ *
+ * !important and last in the file because the per-figure rules above pin
+ * individual groups to a column with a specificity a generic selector cannot
+ * beat. */
+@media (max-width: 420px) {
+  .cgd-mobile-embed .controls > *,
+  .cgd-mobile-embed .remit-viz__controls > * {
+    grid-column: 1 / -1 !important;
+    /* grid-row too: figure 12 pins two of its groups to `grid-row: 1`, so
+       widening both to the full row put them on top of each other. Letting the
+       rows auto-place restores one control per row. */
+    grid-row: auto !important;
   }
 }

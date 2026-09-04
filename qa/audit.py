@@ -107,8 +107,25 @@ AUDIT = r"""(cfg)=>{
    const anc=clipAncestor(t); if(!anc)continue;
    const p=anc.getBoundingClientRect();
    const lost=Math.max(0,b.right-p.right)+Math.max(0,p.left-b.left);
-   if(lost>2)push('svg text clipped',{txt:txt.slice(0,36),lostPx:Math.round(lost),
-     by:anc.tagName+'.'+String(anc.className).slice(0,18)});
+   if(lost>2){push('svg text clipped',{txt:txt.slice(0,36),lostPx:Math.round(lost),
+     by:anc.tagName+'.'+String(anc.className).slice(0,18)});continue;}
+   // Not formally overflowing, but close enough to be cut anyway: a glyph's ink
+   // can extend past the advance width the layout box reports. Figure 12's
+   // x-axis title finished 1px inside its panel at 320px, so the test above
+   // passed while the rendered label actually read "...recipient GI".
+   //
+   // 2px of clearance is the bar. It is deliberately small: a centred edge tick
+   // legitimately sits close to the panel — figure 7's "$100,000" clears by 8px
+   // and is entirely readable — so this flags only text with essentially no room
+   // left, which is where the cut-off letter appears.
+   // A scroll container is exempt: content past its edge is reachable, not lost.
+   // Figure 2's y-axis title sits 2px beyond its chart-wrap, which scrolls.
+   const ancOv=getComputedStyle(anc);
+   if(/auto|scroll/.test(ancOv.overflowX)||/auto|scroll/.test(ancOv.overflow))continue;
+   const clearance=Math.min(p.right-b.right,b.left-p.left);
+   if(clearance<2)push('svg text has no clearance, letters get cut',
+     {txt:txt.slice(0,36),clearancePx:Math.round(clearance),
+      by:anc.tagName+'.'+String(anc.className).slice(0,18)});
  }
 
  // 4. Overlapping axis/annotation text inside a plot.
@@ -173,8 +190,15 @@ AUDIT = r"""(cfg)=>{
    if(sel.selectedIndex===-1)push('select shows no selected option',{id:sel.id||'?',value:sel.value});}
 
  // 10. A native <select> clips its option text silently: no scrollWidth, no
- //     overflow, just an unreadable label. Some truncation is unavoidable at
- //     320px, so flag only where too little survives to identify the selection.
+ //     overflow, just an unreadable label. This is how figure 3's income filter
+ //     came to read "All income g" at every width — 113px of text in 97px of
+ //     room — while every other check passed.
+ //
+ //     The bar is that the selected option fits, full stop. It was 0.6 on the
+ //     assumption that some truncation is unavoidable at 320px; it is not, once
+ //     a select stops reserving 30px for a chevron it does not draw and takes a
+ //     full grid row where half a row is too narrow. The 0.98 tolerance absorbs
+ //     the difference between canvas measurement and rendered text.
  const cv=document.createElement('canvas').getContext('2d');
  for(const sel of document.querySelectorAll('select')){
    if(!shown(sel))continue;
@@ -183,9 +207,34 @@ AUDIT = r"""(cfg)=>{
    const txt=sel.selectedOptions[0]?sel.selectedOptions[0].text:'';
    const inner=sel.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
    const w=cv.measureText(txt).width;
-   if(txt&&w>0&&inner/w<0.6)
-     push('select option text severely clipped',{id:sel.id||'?',txt:txt.slice(0,34),
-       visibleFraction:+(inner/w).toFixed(2)});}
+   if(txt&&w>0&&inner/w<0.98)
+     push('select option text does not fit',{id:sel.id||'?',txt:txt.slice(0,34),
+       visibleFraction:+(inner/w).toFixed(2),needs:Math.round(w),has:Math.round(inner)});}
+
+ // 10b. Controls in one bank must share a height or the row reads as ragged.
+ //      Nine of the twelve figures had two or three different heights sitting
+ //      side by side, because the shared layer left each control's height to its
+ //      own font-size and padding.
+ //
+ //      A segmented toggle that has wrapped to two rows is exempt: below 400px a
+ //      three-option toggle reflows rather than shrinking its labels, and being
+ //      taller is the whole point of that.
+ for(const bank of document.querySelectorAll('.controls,.remit-viz__controls')){
+   if(!shown(bank))continue;
+   const items=[...bank.querySelectorAll(
+     'select,.segmented,.remit-viz__toggle,.toggle,.country-trigger,'
+     +'.combo__button,.select-trigger,.search-select')].filter(shown);
+   const seen=new Map();
+   for(const el of items){
+     const btns=[...el.querySelectorAll('button')].filter(shown);
+     const rows=new Set(btns.map(x=>Math.round(x.getBoundingClientRect().top))).size;
+     if(rows>1)continue;                       // a wrapped pill bank, legitimately taller
+     const h=Math.round(el.getBoundingClientRect().height);
+     if(!seen.has(h))seen.set(h,String(el.className).split(' ')[0]||el.tagName);
+   }
+   if(seen.size>1)
+     push('controls in one bank have different heights',
+       {found:[...seen.entries()].map(function(e){return e[0]+'px:'+e[1];})});}
 
  // 11. Trailing blank space on a control row. A wrapped row that stops short
  //     leaves a bare stripe of panel, which reads as a missing control.

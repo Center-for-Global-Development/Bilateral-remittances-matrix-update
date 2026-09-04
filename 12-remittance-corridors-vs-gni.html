@@ -278,7 +278,15 @@ function renderChart(rows){
   });
   el('line',{x1:x0,x2:x1,y1:height-margin.bottom+4,y2:height-margin.bottom+4,class:'grid-line'});
   const axisTitle = el('text',{x:(x0+x1)/2,y:height-7,'text-anchor':'middle',class:'axis-title'});
-  axisTitle.textContent = 'Corridor contribution to recipient GNI';
+  // At 320px the full wording is 8px wider than the plot and the last
+  // letters were cut, reading "...recipient GI". The notes below the chart
+  // carry the full definition.
+  // 300 is the chart width, not the viewport: at a 320px viewport the plot is
+  // 263px and the full wording overflows by 8px, but at 360px it is 303px and
+  // fits with room to spare, so the short form applies only where it must.
+  axisTitle.textContent = width < 300
+    ? 'Share of recipient GNI'
+    : 'Corridor contribution to recipient GNI';
   rows.forEach((d,i) => {
     const y = margin.top + i*rowH + rowH/2;
     const group = el('g',{class:'bar-row',tabindex:'0',role:'button','aria-label':`${corridorFullLabel(d)}. 2024 ${fmtPctFromFraction(d.gniShare2024)}; 2021 ${fmtPctFromFraction(d.gniShare2021)}.`});

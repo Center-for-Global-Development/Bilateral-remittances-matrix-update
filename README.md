@@ -85,7 +85,7 @@ A figure's own `<style>` block is for that figure's marks and nothing else. **Do
 
 Two floors are enforced rather than advisory, and `qa/audit.py` fails the build on either: no text below 10px, and editable inputs at 16px at every width so iOS does not zoom-jump on focus. The type scale is otherwise deliberately dense.
 
-`shared/vendor/` holds figure 4's dependencies — d3 7.9.0, topojson-client 3.1.0 and the world-atlas 2.0.2 geometry — at exact versions. These were previously loaded from a CDN at unpinned major ranges (`d3@7`, `world-atlas@2`) with no integrity hashes, so an unreachable CDN meant no map at all and a new upstream release could change the figure without a commit here. Same-origin files remove both problems. The trade is that ~250KB gzipped of geometry now arrives over the reader's own connection rather than from a CDN edge; see "The map is still slow" below.
+`shared/vendor/` holds figure 4's dependencies — d3 7.9.0, topojson-client 3.1.0 and the world-atlas 2.0.2 geometry — at exact versions. These were previously loaded from a CDN at unpinned major ranges (`d3@7`, `world-atlas@2`) with no integrity hashes, so an unreachable CDN meant no map at all and a new upstream release could change the figure without a commit here. Same-origin files remove both problems. The trade is that ~250KB gzipped of geometry now arrives over the reader's own connection rather than from a CDN edge; see "The map: what was done about its weight" below.
 
 > `shared/cgd-responsive.css` began as a byte-identical copy of the file in the ODA cuts project. It has since diverged: axis text on compact viewports is 10.5px rather than 9.5px, and editable inputs are 16px at all widths rather than only below 520px. Both were `!important` rules that no figure could opt out of, and both put text below the readable floor. If the two projects are ever reconciled, those two changes belong in the ODA copy as well.
 
@@ -105,6 +105,10 @@ Two payload shapes, matching how each figure already consumed its data:
   declarations, moved verbatim. A top-level `const` in a classic script binds in
   the global lexical environment, so the figure script that runs afterwards still
   sees it.
+
+Figure 4 has a second file, `data/4-remittances-map-details.js`, holding the
+per-corridor statistics its popups need. It is *not* loaded up front — see "The
+map" below.
 
 The data files are generated. Do not hand-edit them; regenerate and re-run
 `qa/audit.py`. Each carries a header naming its byte count and sha256.
@@ -139,25 +143,75 @@ file cached and the HTML revalidated:
 Bump the `?v=` token on a figure's data file only when that data changes; leave
 it alone for code-only changes, or the caching benefit is lost.
 
-### The map is still slow, and this is why
+### The map: what was done about its weight, and what is left
 
-Figure 4 evaluates 5.38MB of script: 4.26MB of corridor data, 761KB of country
-geometry, 280KB of d3. Profiling the compute on a throttled phone shows the cost
-is *not* in any one algorithm — `JSON.parse` of the 3.56MB corridor payload is
-102 ms, `topojson.feature` is 17 ms, fitting the projection 286 ms and building
-all 241 country paths 510 ms, about 0.9 s in total. The remaining time is
-evaluating those megabytes of script and building the SVG.
+Figure 4 loaded 5.38MB of script before it could draw. 2.78MB of that — 78% of
+its data payload — was `flowStats`: per-year shares, migrant stocks and GNI
+figures for 8,664 corridor pairs, read only by `safeStat()` to fill the corridor
+and country popups. None of it is needed to draw the map, and most readers never
+open a popup.
 
-So the lever is payload size, which is a data-modelling decision rather than a
-rendering one. Two options, neither taken here because both change what the
-figure shows:
+It now lives in `data/4-remittances-map-details.js`, injected after the map has
+rendered:
 
-- The corridor payload carries all 17,130 flows; the default view draws 341.
-  Serving a pre-ranked subset, with the long tail fetched on demand, would cut
-  the bulk of that 4.26MB.
-- The geometry is world-atlas at 1:50m. The 1:110m build is roughly a tenth the
-  size and is ample at the rendered size, but visibly coarser once a reader zooms
-  in.
+- the injection waits for `cgd:ready`, not for `init()`. Parsing 3.3MB blocks the
+  main thread, and an idle callback landing before the shared embed script has
+  finished measuring pushed time-to-ready out by a second even though the map was
+  already on screen;
+- the two popup entry points go through `withDetails()`, so a click before the
+  statistics arrive waits for them rather than showing zeros. Verified by
+  clicking the instant the map became ready on a 400 Kbps link: the popup showed
+  the same numbers, byte-identical to the fully-loaded case;
+- the hover tooltip needed no change — it already guarded `st.p == null` and
+  simply omits its "% of recipient total" line until the statistics land.
+
+Measured on the throttled phone profile: **critical path 5.38MB → 2.12MB
+(1,134KB → 516KB gzipped), transfer before the map appears 1,120KB → 515KB, time
+to ready 13.0s → 9.9s.** No visual change, and all 108 render fingerprints stayed
+identical.
+
+What is left is CPU rather than network: evaluating d3 (280KB), the geometry
+(761KB) and the map data (993KB), then fitting the projection (286 ms) and
+building 241 country paths (510 ms).
+
+**Do not swap the geometry for world-atlas 1:110m to save that 761KB.** It is
+6× smaller gzipped and the temptation is obvious, but it carries 175 country ids
+against the 50m build's 236. It would stop drawing 44 territories, 34 of them
+with remittance corridors in the data — Samoa, Tonga, Comoros, Cape Verde,
+Maldives, Micronesia, Kiribati, Marshall Islands, Mauritius, Bermuda, Aruba,
+Curaçao among them. Those small states are precisely where remittance dependence
+is highest, so the saving would cost the figure its subject.
+
+The remaining option, not taken here, is topology-preserving simplification of
+the 1:50m build (mapshaper, or `topojson-simplify`), which keeps all 236
+territories and thins coordinate density instead of dropping places. That needs a
+Node build step and a visual check at full zoom.
+
+### Control sizing
+
+Every control in the set renders at one height, `--cgd-control-min` (34px), set
+in `shared/cgd-responsive.css`. Before that, the shared layer said
+`height: auto`, so each control's height came from its own font-size and
+padding: a segmented toggle was 42px, a search input 42px, a native select 36px,
+a country trigger 34px, figure 7's combo input 34.4px. Nine of the twelve figures
+had two or three different heights sitting side by side.
+
+Two things follow from that, and both matter if you touch this:
+
+- a segmented pill bank is 34px *overall*, so its buttons are
+  `--cgd-control-inner` (26px) — the bank's own 3px padding and 1px border make up
+  the difference. That value is a token because it is set in two places, the base
+  rule and the compact override, and they had drifted apart;
+- a three-option toggle below 400px wraps to two rows instead of shrinking its
+  labels, so it is legitimately taller. `qa/audit.py` checks that controls in one
+  bank share a height and exempts a wrapped bank.
+
+Native selects do not set `appearance: none` and draw no chevron of their own, so
+they must not reserve padding for one — 30px of right padding was what truncated
+figure 3's income filter to "All income g". They now take the width their widest
+option needs above 600px, and one control per row below 420px, where half a bank
+is narrower than a 16px-text label. The audit fails any select whose selected
+option does not fit.
 
 ## Verifying a change
 
@@ -173,6 +227,8 @@ python qa/audit.py 4 9 --shots qa/shots
 ```
 
 It checks: boxes escaping the frame; control text clipped, or spilling outside its own control; SVG text clipped by a panel; overlapping axis and annotation text; overlapping control groups; tap targets below 24px; editable inputs below 16px; any text below 10px; a `<select>` showing a blank or unreadable value; bare stripes of unused control panel; horizontal page overflow; whether any marks rendered at all; console errors; and, statically, that no figure loads a third-party script or fetches from a third-party origin.
+
+It also checks that controls in one bank share a height, and that a `<select>`'s selected option actually fits — the two things behind the ragged control rows and figure 3's "All income g".
 
 The focus check compares each control's computed style focused against unfocused and accepts **any** visible difference. These figures legitimately suppress the browser ring with `outline: none` and substitute a background tint, so insisting on an outline would report ~250 false failures. Measuring the difference instead found the one real gap: figure 10's legend toggles were styled `:focus-visible:not(.active)` while all three start active, so focusing one changed nothing.
 

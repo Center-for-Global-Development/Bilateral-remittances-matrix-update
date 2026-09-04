@@ -197,6 +197,37 @@ body { font-size: var(--body-size); }
 <script>
 (function() {
   const DATA = JSON.parse(CGD_VIZ_DATA);
+  /*
+    Per-corridor detail statistics are 2.78MB and are needed only by the popups,
+    so they are not in the first load. This injects them once, after the map has
+    drawn, and the click paths go through withDetails() so a very early click
+    still gets real numbers rather than zeros. A <script> injection rather than
+    fetch(), so the figure still works opened from file://.
+  */
+  DATA.flowStats = {};
+  let detailsState = 'idle';
+  let detailsPromise = null;
+  function ensureDetails() {
+    if (detailsState === 'ready') return Promise.resolve();
+    if (detailsPromise) return detailsPromise;
+    detailsState = 'loading';
+    detailsPromise = new Promise(resolve => {
+      const el = document.createElement('script');
+      el.src = 'data/4-remittances-map-details.js?v=20260904';
+      el.onload = () => {
+        try { DATA.flowStats = JSON.parse(CGD_VIZ_DETAILS); } catch (e) { /* keep {} */ }
+        detailsState = 'ready';
+        resolve();
+      };
+      el.onerror = () => { detailsState = 'failed'; resolve(); };
+      document.body.appendChild(el);
+    });
+    return detailsPromise;
+  }
+  function withDetails(fn) {
+    if (detailsState === 'ready' || detailsState === 'failed') { fn(); return; }
+    ensureDetails().then(fn);
+  }
   const countryByCode = new Map(DATA.countries.map(d => [d.code, d]));
   const countriesByM49 = new Map(DATA.countries.filter(d => d.m49).map(d => [String(d.m49).padStart(3, '0'), d]));
   const countryOptions = [{id:'ALL', label:'All countries'}].concat(DATA.countries.filter(d => d.name && d.code && d.name !== 'N/A').sort((a,b)=>a.name.localeCompare(b.name)).map(d => ({id:d.code, label:d.name})));
@@ -787,14 +818,14 @@ body { font-size: var(--body-size); }
       .on('mouseleave', function() { hideTooltip(); clearHoverHighlight(); if (state.scope === 'countries' && state.selected !== 'ALL') drawHighlight(state.selected, true); })
       .on('click', function(event, f) {
         const meta = f.properties.meta;
-        if (state.scope !== 'countries') { if (meta) openCountryPopup(meta); return; }
+        if (state.scope !== 'countries') { if (meta) withDetails(() => openCountryPopup(meta)); return; }
         if (meta) {
           state.selected = meta.code;
           lastAutoZoomKey = '';
           closePicker();
           hideTooltip();
           render();
-          openCountryPopup(meta);
+          withDetails(() => openCountryPopup(meta));
         } else if (state.selected !== 'ALL') {
           // Clicked an area with no data: treat as background and clear the selection.
           clearSelection();
@@ -878,7 +909,7 @@ body { font-size: var(--body-size); }
       .on('mouseleave', function(event) { setHoveredFlow(null, event); })
       .on('click', function(event) {
         const nearest = nearestFlowFromEvent(event);
-        if (nearest) openCorridorPopup(nearest.d);
+        if (nearest) withDetails(() => openCorridorPopup(nearest.d));
       });
 
     if (state.scope === 'countries' && state.selected !== 'ALL') {
@@ -931,6 +962,20 @@ body { font-size: var(--body-size); }
   init().then(function () {
     window.cgdRendered = true;
     document.dispatchEvent(new Event('cgd:rendered'));
+    // Fetch the popup statistics once the figure has fully settled, so a click
+    // a moment later is instant.
+    //
+    // This waits for cgd:ready rather than firing straight away: parsing 3.3MB
+    // of statistics blocks the main thread, and an idle callback can land before
+    // the shared embed script has finished measuring and reported its height —
+    // which pushed time-to-ready out by a second even though the map itself had
+    // already drawn.
+    const prefetch = function () {
+      if ('requestIdleCallback' in window) requestIdleCallback(ensureDetails, { timeout: 4000 });
+      else setTimeout(ensureDetails, 400);
+    };
+    if (window.CGD_READY) prefetch();
+    else window.addEventListener('cgd:ready', prefetch, { once: true });
   });
 })();
 </script>
