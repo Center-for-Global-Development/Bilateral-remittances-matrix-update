@@ -11,6 +11,23 @@ All 12 visualisations use the CGD iframe analytics contract:
 
 The shared implementation is `shared/cgd-embed.js`. Changes to tracked controls, names, or labels must update this manifest in the same commit.
 
+`shared/cgd-embed.js` also carries the `CGD_READY` signal that `qa/audit.py` waits on, and the scroll-cue behaviour for regions wider than the panel. Neither sends analytics.
+
+## Unchanged by the 2026-09 review pass
+
+That pass altered control labels, layout and both shared stylesheets. It did **not** add, remove or rename a tracked control, and `action_value` is unaffected because it is read from each control's `data-*` attribute rather than its visible text. Verified in a listening parent:
+
+| Figure | Control | Visible label | `action_value` |
+|---|---|---|---|
+| 5 | `#metricToggle` | `US$` → `$bn` | `usd` / `pct`, from `data-metric` |
+| 6 | `#metricToggle` | `US$` → `$bn` | `usd` / `pct`, from `data-metric` |
+| 4 | `#scopeToggle` | unchanged | `regional`, from `data-scope` |
+| 12 | `#roleToggle` | unchanged | `source`, from `data-role` |
+
+The same check confirmed `interactive_view` still fires exactly once per figure with the correct `interactive_name`, and that the reported height both grows and shrinks (`667 → 822 → 667` on figure 1's view toggle).
+
+Two elements were removed in that pass; neither was ever tracked: figure 10's instructional subtitle, and figure 1's `No stock record` card, which restated a bar in its own chart.
+
 ## Event inventory
 
 | File / `interactive_name` | Tracked engagements |

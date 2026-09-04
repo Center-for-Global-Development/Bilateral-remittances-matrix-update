@@ -1,0 +1,237 @@
+/* CGD figure tokens — the single source of truth for this set.
+ *
+ * Before this file existed, all twelve figures carried their own copy of the
+ * :root block and re-derived every size independently. The result was 56
+ * distinct font sizes across the set, many of them 0.1px apart (10.2 / 10.3 /
+ * 10.4 / 10.5 / 10.6 / 10.7 / 10.8), which nobody chose deliberately. Cross-
+ * figure consistency is not achieved by twelve builds reading the same prose;
+ * it is achieved by twelve figures importing one file.
+ *
+ * Load order in every figure:
+ *     shared/cgd-figure.css        <- tokens and shared chrome (this file)
+ *     shared/cgd-responsive.css    <- control behaviour on compact viewports
+ *     <style>                      <- that figure's own marks, and nothing else
+ *
+ * Do not add a :root override or a duplicate .segmented / .controls rule inside
+ * a figure. A figure's inline <style> is for its chart marks only. Changing a
+ * value here changes it everywhere, which is the point.
+ *
+ * The type scale is deliberately dense — CGD has chosen density over the
+ * WCAG-comfortable sizes for these editorial figures. Two floors are not
+ * negotiable and qa/audit.py enforces both: no text below --fs-floor, and
+ * editable inputs at --fs-input so iOS does not zoom-jump on focus.
+ */
+
+:root {
+  /* Brand palette */
+  --cgd-teal: #0B4C5B;
+  --cgd-light-teal: #006970;
+  --cgd-gold: #FFB52C;
+  --cgd-light-gold: #FEE8BF;
+  --cgd-teal-gray: #85A5AD;
+  --cgd-blue: #2D99B5;
+  --cgd-light-blue: #BFDEE0;
+  --cgd-light-gray: #DFE0E2;
+  --cgd-dark-gray: #394649;
+  --cgd-teal-black: #1A272A;
+  --cgd-green: #00896C;
+  --cgd-red: #D15553;
+  --cgd-white: #FFFFFF;
+  --cgd-offwhite: #F8FAFB;
+  --border: #D9E1E4;
+
+  /* Type */
+  --font-sans: "Sofia Pro", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --title-size-desktop: 24px;
+  --title-size-tablet: 22px;
+  --title-size-mobile: 20px;
+  --title-size-fullscreen: 30px;
+  --subtitle-size: 13.5px;
+  --panel-title-size: 13.5px;
+  --label-size: 12px;
+  --body-size: 12px;
+  --control-size: 11.6px;
+  --note-size: 10.8px;
+  --legend-size: 11px;
+  --axis-size: 10.5px;
+
+  /* Floors. Nothing in the set may go below these. */
+  --fs-floor: 10px;        /* smallest permitted text anywhere */
+  --fs-min: 10.4px;        /* what a control shrinks TO, and no further */
+  --fs-input: 16px;        /* editable inputs, at every width */
+
+  /* Controls */
+  --control-height: 34px;
+  --control-radius: 9px;
+  --tap-min: 24px;         /* smallest permitted interactive height */
+  --legend-min-h: 24px;
+  --icon-btn: 30px;
+
+  /* Layout */
+  --figure-max-width: 930px;
+  --figure-pad: 13px;
+}
+
+/* ---------------------------------------------------------------- reset */
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--cgd-white);
+  color: var(--cgd-teal-black);
+  font-family: var(--font-sans);
+}
+
+/* Keeps the layout from jumping sideways when a filter changes the height
+ * enough to add or remove the scrollbar. */
+html { scrollbar-gutter: stable; }
+
+body { font-size: var(--body-size); }
+
+/* ------------------------------------------------------------- the frame */
+
+.viz-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: var(--figure-max-width);
+  margin: 0 auto;
+  padding: var(--figure-pad);
+  background: var(--cgd-white);
+  color: var(--cgd-teal-black);
+}
+
+.header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.title-block { min-width: 0; }
+
+.viz-wrapper h1 {
+  margin: 0;
+  color: var(--cgd-teal);
+  font-size: var(--title-size-desktop);
+  line-height: 1.14;
+  letter-spacing: -0.012em;
+  font-weight: 700;
+}
+
+.viz-wrapper:fullscreen {
+  max-width: none;
+  width: 100%;
+  min-height: 100vh;
+  overflow-y: auto;
+  padding: 22px;
+  background: var(--cgd-white);
+}
+
+.viz-wrapper:fullscreen h1 { font-size: var(--title-size-fullscreen); }
+
+/* A dialog inside a fullscreen element is only painted if it outranks the
+ * fullscreen layer. */
+.viz-wrapper:fullscreen .popup-backdrop { position: fixed; z-index: 2147483647; }
+
+/* ------------------------------------------------------- fullscreen button */
+
+.fullscreen-btn {
+  flex: 0 0 auto;
+  width: var(--icon-btn);
+  height: var(--icon-btn);
+  border: 1px solid var(--border);
+  background: var(--cgd-white);
+  color: var(--cgd-teal);
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fullscreen-btn:hover,
+.fullscreen-btn:focus-visible {
+  border-color: var(--cgd-teal-gray);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(11, 76, 91, 0.10);
+}
+
+.fullscreen-btn .icon-compress { display: none; }
+.viz-wrapper:fullscreen .fullscreen-btn .icon-expand { display: none; }
+.viz-wrapper:fullscreen .fullscreen-btn .icon-compress { display: block; }
+
+/* ------------------------------------------------------- interaction floors
+ *
+ * Legends in this set are filters, not decoration, so they are real controls
+ * and answer to the tap-target floor. They had drifted to three different
+ * geometries: 24px in figure 7, 20px in figures 3/8/9/11, 17px in figure 12.
+ * Figure 7's was the one that passed, so its height is the house value.
+ *
+ * These use :where() so they carry zero specificity: a figure that needs a
+ * different legend shape can still override with a plain class selector, but it
+ * inherits the floor by default rather than by remembering to.
+ */
+
+:where(.legend-item, .region-pill, .legend-toggle) {
+  min-height: var(--legend-min-h);
+  font-size: var(--legend-size);
+  line-height: 1.05;
+}
+
+:where(.viz-wrapper button, .viz-wrapper select) {
+  min-height: var(--tap-min);
+}
+
+/* Focus must stay visible on every control, including inside a scroll region
+ * where an outline can be clipped. */
+:where(.viz-wrapper) :focus-visible {
+  outline: 2px solid var(--cgd-teal);
+  outline-offset: 1px;
+}
+
+/* --------------------------------------------------------------- axis type */
+
+:where(.axis text, .tick text, .axis-label) { font-size: var(--axis-size); }
+
+/* ------------------------------------------------------------- scroll cues
+ *
+ * Paired with data-cgd-scroll-cue and the class toggling in cgd-embed.js. The
+ * shadow sits inside the region on whichever edge still has content behind it,
+ * so a reader can see that a wide table or chart continues past the panel.
+ */
+
+[data-cgd-scroll-cue] { position: relative; }
+
+.cgd-can-scroll-right {
+  box-shadow: inset -14px 0 12px -12px rgba(26, 39, 42, 0.32);
+}
+
+.cgd-can-scroll-left {
+  box-shadow: inset 14px 0 12px -12px rgba(26, 39, 42, 0.32);
+}
+
+.cgd-can-scroll-left.cgd-can-scroll-right {
+  box-shadow: inset -14px 0 12px -12px rgba(26, 39, 42, 0.32),
+              inset 14px 0 12px -12px rgba(26, 39, 42, 0.32);
+}
+
+[data-cgd-scroll-cue]:focus-visible {
+  outline: 2px solid var(--cgd-teal);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------- notes */
+
+.notes {
+  margin-top: 9px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  color: var(--cgd-dark-gray);
+  font-size: var(--note-size);
+  line-height: 1.38;
+}
+
+.notes strong { color: var(--cgd-teal); }

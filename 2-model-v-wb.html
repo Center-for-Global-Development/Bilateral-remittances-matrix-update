@@ -5,32 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Modelled Remittances Sent Compared with World Bank Data</title>
 <style>
-:root {
-  --cgd-teal: #0B4C5B;
-  --cgd-light-teal: #006970;
-  --cgd-gold: #FFB52C;
-  --cgd-light-gold: #FEE8BF;
-  --cgd-teal-gray: #85A5AD;
-  --cgd-blue: #2D99B5;
-  --cgd-light-blue: #BFDEE0;
-  --cgd-light-gray: #DFE0E2;
-  --cgd-dark-gray: #394649;
-  --cgd-teal-black: #1A272A;
-  --cgd-green: #00896C;
-  --cgd-red: #D15553;
-  --cgd-white: #FFFFFF;
-  --cgd-offwhite: #F8FAFB;
-  --border: #D9E1E4;
-  --font-sans: "Sofia Pro", "Inter", "Helvetica Neue", Arial, sans-serif;
-  --title-size-desktop: 24px;
-  --title-size-tablet: 22px;
-  --title-size-mobile: 20px;
-  --label-size: 12px;
-  --body-size: 12px;
-  --note-size: 10.8px;
-  --control-height: 34px;
-  --control-radius: 9px;
-}
+
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: #fff; color: var(--cgd-teal-black); font-family: var(--font-sans); }
 body { font-size: var(--body-size); }
@@ -143,7 +118,7 @@ body { font-size: var(--body-size); }
   border-radius: 10px;
   padding: 0 10px;
   font: inherit;
-  font-size: 12px;
+  font-size:var(--fs-input);
   color: var(--cgd-teal-black);
   box-shadow: 0 0 0 3px rgba(45,153,181,0.10);
 }
@@ -280,39 +255,40 @@ body { font-size: var(--body-size); }
 @media (max-width: 860px) {
   .remit-viz { padding: 11px; }
   .remit-viz__controls { grid-template-columns: minmax(90px, 0.78fr) minmax(112px, 0.9fr) minmax(110px, 0.92fr); gap: 5px; padding: 6px; margin-bottom: 6px; }
-  .remit-control label, .remit-toggle__label { font-size: 10.2px; margin-bottom: 2px; }
+  .remit-control label, .remit-toggle__label { font-size:var(--fs-min); margin-bottom: 2px; }
   .combo__button { min-height: 29px; padding: 5px 22px 5px 7px; font-size: 10.8px; border-radius: 8px; }
   .combo__button::after { width: 7px; height: 7px; right: 8px; }
   .remit-segment { min-height: 29px; padding: 2px; gap: 1px; }
-  .remit-segment button { font-size: 9.6px; padding: 4px 3px; }
+  .remit-segment button { font-size:var(--fs-min); padding: 4px 3px; }
   .remit-viz__cards { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; margin-bottom: 6px; }
   .remit-card { min-height: 48px; padding: 7px 6px 6px; border-radius: 10px; }
-  .remit-card__label { font-size: 9.8px; margin-bottom: 2px; }
+  .remit-card__label { font-size:var(--fs-min); margin-bottom: 2px; }
   .remit-card__figure { font-size: 13.5px; }
-  .remit-card__qualifier { font-size: 9.3px; }
-  .axis { font-size: 9.5px; }
+  .remit-card__qualifier { font-size:var(--fs-min); }
+  .axis { font-size:var(--fs-min); }
 }
 @media (max-width: 650px) {
   .remit-viz h1 { font-size: var(--title-size-mobile); }
   .remit-viz__chart-wrap { overflow-x: auto; min-height: 340px; }
-  .remit-viz__legend { font-size: 10px; gap: 4px 6px; }
+  .remit-viz__legend { font-size:var(--fs-min); gap: 4px 6px; }
 }
 @media (max-width: 520px) {
   .remit-viz__top { gap: 7px; }
   .fullscreen-btn { width: 29px; height: 29px; }
   .remit-viz__controls { grid-template-columns: minmax(68px, 0.78fr) minmax(82px, 0.88fr) minmax(90px, 0.98fr); gap: 4px; padding: 5px; }
-  .combo__button { font-size: 9.8px; }
-  .remit-segment button { font-size: 8.5px; padding-left: 1px; padding-right: 1px; }
+  .combo__button { font-size:var(--fs-min); }
+  .remit-segment button { font-size:var(--fs-min); padding-left: 1px; padding-right: 1px; }
   .combo__menu { position: fixed; left: 12px; right: 12px; top: 78px; }
   .remit-viz__cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .remit-card__figure { font-size: 13px; }
 }
 
 </style>
-  <link rel="stylesheet" href="shared/cgd-responsive.css">
+  <link rel="stylesheet" href="shared/cgd-figure.css?v=20260904">
+  <link rel="stylesheet" href="shared/cgd-responsive.css?v=20260904">
 </head>
 <body>
-<div class="remit-viz" id="remitViz">
+<div class="remit-viz viz-wrapper" id="remitViz">
   <div class="remit-viz__top">
     <div>
       <h1>Modelled Remittances Sent Compared with World Bank Payments Data</h1>
@@ -353,7 +329,7 @@ body { font-size: var(--body-size); }
   </div>
 
   <div class="remit-viz__legend" id="legend"></div>
-  <div class="remit-viz__chart-wrap" id="chartWrap"></div>
+  <div class="remit-viz__chart-wrap" data-cgd-scroll-cue id="chartWrap"></div>
   <div class="remit-viz__note"><strong>Source and notes:</strong> Author calculations using World Bank remittance outflow totals and modelled remittance-sending estimates. Values are current US dollars. Axes use a pseudo-log scale so countries with zero reported values remain visible.</div>
   <div class="remit-tooltip" id="tooltip" hidden></div>
 </div>
@@ -886,7 +862,8 @@ body { font-size: var(--body-size); }
 
   updateAllViews();
 })();
+window.cgdRendered = true; document.dispatchEvent(new Event('cgd:rendered'));
 </script>
-  <script src="shared/cgd-embed.js"></script>
+  <script src="shared/cgd-embed.js?v=20260904"></script>
 </body>
 </html>

@@ -274,4 +274,76 @@
   if (document.readyState === 'complete') {
     queueMicrotask(reportView);
   }
+
+  // Deterministic readiness signal for the QA gate.
+  //
+  // A figure announces its first completed render by setting `window.cgdRendered`
+  // and dispatching `cgd:rendered` on `document`. Both routes exist because this
+  // script loads last in <body>: the eleven synchronous figures set the flag
+  // before this file has parsed, while the map renders after an await and so
+  // arrives via the event. Whichever comes first wins; the other is ignored.
+  //
+  // `window.CGD_READY` flips only once layout has actually settled — fonts
+  // resolved and two frames painted — so a harness that waits on it is measuring
+  // final geometry, not a mid-render frame.
+  let readyMarked = false;
+
+  function markReady() {
+    if (readyMarked) return;
+    readyMarked = true;
+    const fonts = (document.fonts && document.fonts.ready) || Promise.resolve();
+    fonts.then(function () {
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          reportHeight();
+          window.CGD_READY = true;
+          window.dispatchEvent(new Event('cgd:ready'));
+        });
+      });
+    });
+  }
+
+  if (window.cgdRendered) {
+    markReady();
+  } else {
+    document.addEventListener('cgd:rendered', markReady, { once: true });
+  }
+
+  // Scroll cue for regions that are wider than a phone.
+  //
+  // Several figures put a wide table or chart in a horizontal scroller: the
+  // matrices scroll a 710px grid, figure 10 scrolls a 545px row. Two things were
+  // missing from all of them. There was no sign that anything continued past the
+  // edge, so a reader could reasonably conclude a bar simply ended where the
+  // panel did; and a scroll container with no tabindex cannot be scrolled from
+  // the keyboard at all, which put the hidden part out of reach for anyone not
+  // using a pointer or a touchscreen.
+  //
+  // A figure opts in with data-cgd-scroll-cue on the scrolling element. The
+  // shadow follows the scroll position rather than a breakpoint, so it is right
+  // at any width and shows nothing when the content already fits.
+  function syncScrollCues() {
+    document.querySelectorAll('[data-cgd-scroll-cue]').forEach(function (el) {
+      const max = el.scrollWidth - el.clientWidth;
+      el.classList.toggle('cgd-can-scroll-right', max > 1 && el.scrollLeft < max - 1);
+      el.classList.toggle('cgd-can-scroll-left', max > 1 && el.scrollLeft > 1);
+      if (max > 1 && !el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+    });
+  }
+
+  document.addEventListener('scroll', function (event) {
+    const el = event.target;
+    if (el && el.nodeType === 1 && el.hasAttribute && el.hasAttribute('data-cgd-scroll-cue')) {
+      syncScrollCues();
+    }
+  }, true);
+
+  window.addEventListener('resize', syncScrollCues);
+  window.addEventListener('cgd:ready', syncScrollCues);
+  // The content of these regions is rebuilt on every filter change, so the cue
+  // is re-derived whenever the body's size settles rather than only on load.
+  if ('ResizeObserver' in window) {
+    new ResizeObserver(syncScrollCues).observe(document.body);
+  }
+  window.CGDScrollCue = Object.freeze({ sync: syncScrollCues });
 }());

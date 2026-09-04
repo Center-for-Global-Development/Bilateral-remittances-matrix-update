@@ -68,9 +68,23 @@ textarea,
   font-size: var(--cgd-body-size);
 }
 
-input,
+/* Editable text fields are pinned to 16px at EVERY width, not just on phones.
+ *
+ * This rule used to force --cgd-body-size (14px) with !important and no media
+ * query, so the 16px phone rule further down was the only thing keeping the
+ * country search boxes out of iOS's zoom-jump — and nothing protected a tablet,
+ * which is 768px wide and still zooms a sub-16px field on focus. Because the
+ * declaration is !important, no figure could opt out of it either.
+ *
+ * Buttons and select triggers keep the body size: they are not text entry, so
+ * enlarging them would change the look of every control bank in the set for no
+ * accessibility gain. */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"]),
+textarea {
+  font-size: 16px !important;
+}
+
 select,
-textarea,
 .country-trigger,
 .combo__button,
 .select-trigger {
@@ -502,12 +516,39 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
   font-size: 16px !important;
 }
 
+/* Axis and tick text on compact viewports.
+ *
+ * This was 9.5px, which put every tick on every chart in the set below the
+ * readable floor — and because it is !important, no figure could opt out of it.
+ * The house axis size is 10.5px and there is no reason a phone should get less:
+ * too many ticks is fixed by thinning the ticks, not by shrinking the type until
+ * they fit. qa/audit.py enforces the 10px floor. */
 .cgd-mobile-embed .axis text,
 .cgd-mobile-embed .tick text,
 .cgd-mobile-embed .axis-label,
 .cgd-mobile-embed svg text.axis,
 .cgd-mobile-embed svg text.tick {
-  font-size: 9.5px !important;
+  font-size: 10.5px !important;
+}
+
+/* A three-way toggle ("2024 | 2021 | Change", "US$ | %") needs about 147px of
+ * label at the floor type size, and at 320px it is given ~128px. The labels then
+ * spill outside their own pills: on the selected pill the dark background stops
+ * short and the white text carries on over the panel.
+ *
+ * Wrapping is the house answer — reflow, don't shrink. This is a no-op for a
+ * toggle whose labels already fit, because flex only wraps when it must, so
+ * every two-way toggle in the set is untouched. It needs !important because the
+ * figures set `min-width: 0` on segmented buttons themselves. */
+@media (max-width: 400px) {
+  .segmented:has(button:nth-child(3)) {
+    flex-wrap: wrap !important;
+    row-gap: 2px !important;
+  }
+
+  .segmented:has(button:nth-child(3)) button {
+    min-width: max-content !important;
+  }
 }
 
 .cgd-mobile-embed .fullscreen-btn {
@@ -549,8 +590,12 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 
 /* Chart-specific compact control maps. Every occupied mobile row must be
    complete: no singleton half-row and no unexplained blank cell. */
+/* The map's View toggle now takes a full row, because "Countries |
+   Intra-regional" cannot fit a half-width track at 320px. That leaves the
+   country picker as the singleton half-row the note above forbids, so it takes
+   a full row too. */
 [data-cgd-interactive-name="bilateral-remittances-map"].cgd-mobile-embed .country-picker {
-  grid-column: auto;
+  grid-column: 1 / -1;
 }
 
 [data-cgd-interactive-name="bilateral-remittances-model-v-world-bank"].cgd-mobile-embed .remit-viz__controls {
@@ -565,6 +610,20 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 [data-cgd-interactive-name="bilateral-remittances-regions-matrix"].cgd-mobile-embed .metric-control,
 [data-cgd-interactive-name="bilateral-remittances-income-matrix"].cgd-mobile-embed .metric-control {
   grid-column: 2;
+}
+
+/* Below ~360px, pairing the two controls on one row leaves the display toggle a
+   49px track, which is not enough for two options plus the inline "Display"
+   label — they overflow their pills. The three-option Year toggle needs the wide
+   track more, so the display toggle takes a full row of its own, which is what
+   the generic .metric-control rule above already does for every other figure. */
+@media (max-width: 380px) {
+  [data-cgd-interactive-name="bilateral-remittances-regions-matrix"].cgd-mobile-embed .year-control,
+  [data-cgd-interactive-name="bilateral-remittances-income-matrix"].cgd-mobile-embed .year-control,
+  [data-cgd-interactive-name="bilateral-remittances-regions-matrix"].cgd-mobile-embed .metric-control,
+  [data-cgd-interactive-name="bilateral-remittances-income-matrix"].cgd-mobile-embed .metric-control {
+    grid-column: 1 / -1;
+  }
 }
 
 [data-cgd-interactive-name="bilateral-remittances-regions-matrix"].cgd-mobile-embed .controls,

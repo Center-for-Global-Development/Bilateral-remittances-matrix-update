@@ -1,0 +1,15 @@
+# The repository held mixed line endings: figures 4, 7, 8, 9 and 11 were stored
+# with CRLF and the rest with LF. Editing any of the CRLF files normalised it,
+# which made a two-line change look like a whole-file rewrite in review.
+#
+# Everything textual is stored with LF from here on, so a diff shows only what
+# actually changed. Working copies on Windows still get CRLF via core.autocrlf.
+* text=auto eol=lf
+
+# Vendored libraries and geometry are checked in verbatim; leave them alone.
+shared/vendor/** -text -diff linguist-vendored
+
+# Figure data payloads are generated, one long line each. Marking them generated
+# collapses them in review by default, so a pull request shows the code change
+# rather than four megabytes of numbers.
+data/** linguist-generated=true
