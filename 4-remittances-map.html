@@ -298,6 +298,23 @@ body { font-size: var(--body-size); }
   function pct(value) { return value == null || Number.isNaN(value) ? 'N/A' : `${(value * 100).toFixed(1)}%`; }
   function signedPct(value) { if (value == null || Number.isNaN(value)) return 'N/A'; const sign = value > 0 ? '+' : ''; return `${sign}${(value * 100).toFixed(1)}%`; }
   function pp(value) { if (value == null || Number.isNaN(value)) return 'N/A'; const sign = value > 0 ? '+' : ''; return `${sign}${value.toFixed(1)} pp`; }
+  /*
+    A corridor's share of its recipient's total, for values ALREADY expressed as
+    a percentage (flowStats.p is v / rt * 100, not a fraction — do not multiply
+    by 100 as pct() does). Those shares run from 0.000008% to 97.8%, so a fixed
+    one decimal place printed 43% of corridor-years as "0.0%". Decimals follow
+    the magnitude, giving roughly two significant figures throughout, and a
+    share under a thousandth of a percent is shown as a bound rather than as a
+    rounded-away zero.
+  */
+  function sharePct(value) {
+    if (value == null || Number.isNaN(value)) return 'N/A';
+    if (value === 0) return '0%';
+    const abs = Math.abs(value);
+    if (abs < 0.001) return value < 0 ? '>-0.001%' : '<0.001%';
+    const dp = abs >= 1 ? 1 : abs >= 0.1 ? 2 : abs >= 0.01 ? 3 : 4;
+    return `${value.toFixed(dp)}%`;
+  }
   function escapeHtml(value) { return String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;'); }
   function countryName(code) { return countryByCode.get(code)?.name || code; }
   function safeStat(pairKey, year) { return DATA.flowStats[pairKey]?.y?.[String(year)] || {v:0, p:null, m:null, status:null, gr:null, gs:null, gd:null, gp:null}; }
@@ -674,14 +691,14 @@ body { font-size: var(--body-size); }
     const migrantChange = countChangeLabel(st24.m, st21.m);
     const body = `
       <div class="popup-grid">
-        <div class="popup-stat"><div class="popup-stat-label">${state.year} flow</div><div class="popup-stat-value">${formatUsd(chosen.v || 0)}</div><div class="popup-stat-note">${chosen.p == null ? 'Share N/A' : `${chosen.p.toFixed(1)}% of recipient total`}</div></div>
+        <div class="popup-stat"><div class="popup-stat-label">${state.year} flow</div><div class="popup-stat-value">${formatUsd(chosen.v || 0)}</div><div class="popup-stat-note">${chosen.p == null ? 'Share N/A' : `${sharePct(chosen.p)} of recipient total`}</div></div>
         <div class="popup-stat"><div class="popup-stat-label">Change, 2021–2024</div><div class="popup-stat-value">${escapeHtml(changeLabel(st24.v, st21.v))}</div><div class="popup-stat-note">Share change: ${escapeHtml(propChange)}</div></div>
         <div class="popup-stat"><div class="popup-stat-label">Migrants in source country</div><div class="popup-stat-value">${escapeHtml(migrantNow)}</div><div class="popup-stat-note">2021–2024 change: ${escapeHtml(migrantChange)}</div></div>
         <div class="popup-stat"><div class="popup-stat-label">GNI per capita gap</div><div class="popup-stat-value">${escapeHtml(formatIntDollar(chosen.gd))}</div><div class="popup-stat-note">Source minus recipient, ${escapeHtml(signedPct(chosen.gp))} of recipient GNI per capita</div></div>
       </div>
       <div class="popup-section-title">Year comparison</div>
-      <div class="corridor-row"><div><div class="corridor-route">2021</div><div class="corridor-meta">${st21.p == null ? 'Share N/A' : `${st21.p.toFixed(1)}% of recipient total`} • migrants: ${st21.m == null ? 'N/A' : fmtInt.format(st21.m)}</div></div><div class="corridor-value">${formatUsd(st21.v || 0)}</div></div>
-      <div class="corridor-row"><div><div class="corridor-route">2024</div><div class="corridor-meta">${st24.p == null ? 'Share N/A' : `${st24.p.toFixed(1)}% of recipient total`} • migrants: ${st24.m == null ? 'N/A' : fmtInt.format(st24.m)}</div></div><div class="corridor-value">${formatUsd(st24.v || 0)}</div></div>
+      <div class="corridor-row"><div><div class="corridor-route">2021</div><div class="corridor-meta">${st21.p == null ? 'Share N/A' : `${sharePct(st21.p)} of recipient total`} • migrants: ${st21.m == null ? 'N/A' : fmtInt.format(st21.m)}</div></div><div class="corridor-value">${formatUsd(st21.v || 0)}</div></div>
+      <div class="corridor-row"><div><div class="corridor-route">2024</div><div class="corridor-meta">${st24.p == null ? 'Share N/A' : `${sharePct(st24.p)} of recipient total`} • migrants: ${st24.m == null ? 'N/A' : fmtInt.format(st24.m)}</div></div><div class="corridor-value">${formatUsd(st24.v || 0)}</div></div>
     `;
     openPopup(`${s} → ${r}`, `Modelled remittance corridor`, body);
   }
@@ -848,7 +865,7 @@ body { font-size: var(--body-size); }
       const key = pairKey(d.s,d.r);
       const st = safeStat(key, state.year);
       const totalShare = total ? d.v / total : null;
-      return `<strong>${escapeHtml(countryName(d.s))} → ${escapeHtml(countryName(d.r))}</strong><br>${state.year} modelled remittance corridor<br><strong>${formatUsd(d.v)}</strong><br>${pct(totalShare)} of selected total${st.p == null ? '' : `<br>${st.p.toFixed(1)}% of recipient total`}<br><span style="color:#394649">Click for 2021–2024 details.</span>`;
+      return `<strong>${escapeHtml(countryName(d.s))} → ${escapeHtml(countryName(d.r))}</strong><br>${state.year} modelled remittance corridor<br><strong>${formatUsd(d.v)}</strong><br>${pct(totalShare)} of selected total${st.p == null ? '' : `<br>${sharePct(st.p)} of recipient total`}<br><span style="color:#394649">Click for 2021–2024 details.</span>`;
     }
 
     function addHoverSamples(entry) {

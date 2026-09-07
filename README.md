@@ -246,6 +246,8 @@ The remittance estimates shown in the visualisations are modelled bilateral remi
 
 Text files are stored with LF endings (see `.gitattributes`). The repository previously held a mix, which made a two-line change to one of the CRLF figures look like a whole-file rewrite.
 
+Figure 4's "% of recipient total" is printed by `sharePct()`, which sets its decimal places from the magnitude of the value rather than using a fixed one. `flowStats.p` is already a percentage (exactly `v / rt * 100`), and the shares run from 0.000008% to 97.8%, so one decimal place rendered 43% of corridor-years as "0.0%" — 39% of India's corridors, for instance, whose contributions to large recipients are genuinely small but not zero. The rule gives about two significant figures throughout, and a share below a thousandth of a percent is printed as `<0.001%` rather than as a rounded-away zero. Do not pass these values through `pct()`, which multiplies by 100.
+
 ## Maintainer
 
 Sam Huckstep
