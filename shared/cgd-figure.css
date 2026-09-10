@@ -223,6 +223,111 @@ body { font-size: var(--body-size); }
   outline-offset: 2px;
 }
 
+/* ----------------------------------------------------------- headline stats
+ *
+ * A stat strip, not a row of cards. These numbers used to sit in bordered,
+ * rounded white boxes, each with a 3px coloured bar across the top. The bar
+ * carried nothing the legend did not already carry, and three or four boxed
+ * panels competed for attention with the chart they were meant to introduce.
+ * What is left is the label, the number, its qualifier, and one hairline
+ * separating the strip from the controls beneath it.
+ *
+ * Two class vocabularies arrive here — .kpi* in figures 1 and 10, .descriptor-*
+ * in figures 4 and 12 — because those figures were built at different times.
+ * Both are styled in this one place so the strip cannot drift apart again. A
+ * figure must not restate any of these rules in its own <style>.
+ */
+
+.kpis,
+.descriptor-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 30px;
+  margin: 0 0 9px;
+  padding: 0 0 8px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: none;
+}
+
+.kpis[hidden],
+.descriptor-tabs[hidden] { display: none !important; }
+
+.kpi,
+.descriptor-tab {
+  flex: 0 1 auto;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  overflow: visible;
+}
+
+/* The old coloured trim, removed at the source so a stray --accent on the
+ * element does nothing. */
+.kpi::before,
+.descriptor-tab::before { content: none; display: none; }
+
+.kpi-title,
+.descriptor-title {
+  margin: 0 0 2px;
+  color: var(--cgd-dark-gray);
+  font-size: var(--fs-floor);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.kpi-value,
+.descriptor-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
+  color: var(--cgd-teal);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.012em;
+}
+
+.descriptor-value {
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+}
+
+.kpi-context,
+.descriptor-context {
+  color: var(--cgd-dark-gray);
+  font-size: var(--note-size);
+  font-weight: 400;
+  line-height: 1.24;
+  letter-spacing: 0;
+}
+
+@media (max-width: 640px) {
+  .kpis,
+  .descriptor-tabs { gap: 6px 18px; padding-bottom: 7px; margin-bottom: 8px; }
+  .kpi-value,
+  .descriptor-line { font-size: 14px; }
+}
+
+@media (max-width: 420px) {
+  .kpis,
+  .descriptor-tabs { gap: 5px 13px; }
+  .kpi-value,
+  .descriptor-line { font-size: 13px; gap: 4px; }
+  .kpi-title,
+  .descriptor-title { letter-spacing: 0.05em; }
+}
+
 /* ------------------------------------------------------------------- notes */
 
 .notes {

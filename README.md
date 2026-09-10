@@ -77,7 +77,7 @@ Every figure loads the same three files, in this order, before its own `<style>`
 
 | File | Owns |
 |---|---|
-| `shared/cgd-figure.css` | Tokens — colour, type scale, control sizing, readability floors — plus the figure frame, fullscreen button, notes and scroll cues |
+| `shared/cgd-figure.css` | Tokens — colour, type scale, control sizing, readability floors — plus the figure frame, fullscreen button, headline stats, notes and scroll cues |
 | `shared/cgd-responsive.css` | Control behaviour on compact viewports; the override layer, so it uses `!important` deliberately |
 | `shared/cgd-embed.js` | The iframe resize contract, analytics, the `CGD_READY` signal and scroll-cue behaviour. Loads **last** in `<body>` |
 
@@ -212,6 +212,51 @@ figure 3's income filter to "All income g". They now take the width their widest
 option needs above 600px, and one control per row below 420px, where half a bank
 is narrower than a 16px-text label. The audit fails any select whose selected
 option does not fit.
+
+### Headline stats
+
+Four figures open with a strip of headline numbers: figures 1 and 10 call them
+`.kpi`, figures 4 and 12 call them `.descriptor-tab`, because they were built at
+different times. Both vocabularies are now styled in one place, under *headline
+stats* in `shared/cgd-figure.css`, and no figure restates any of it.
+
+They used to be cards: a bordered, rounded white box per number with a 3px
+coloured bar across the top, driven by an inline `--accent`. The trim carried no
+information — in figure 10 the three accents repeated the series colours already
+in the legend directly beneath, and in figures 1 and 4 they mapped to nothing at
+all — while three or four boxed panels competed for attention with the chart they
+were meant to introduce. What is there now is the label (uppercase, 10px, grey),
+the number, its qualifier, and one hairline separating the strip from the
+controls below it. The `--accent` plumbing is gone from the render functions, and
+`.kpi::before` / `.descriptor-tab::before` are neutralised in the shared file so
+a stray accent does nothing.
+
+Stats size to their own content and wrap, so the strip takes any number of them
+and stacks cleanly on a phone without a per-figure column count.
+
+### Figure 1's Year and View toggles
+
+Both are two-option toggles whose width belongs to their labels. They were sized
+with a percentage flex-basis inside a control bank that is itself
+`width: fit-content` — circular, so each toggle settled on its floor and
+ellipsised "Global" and "Countries" even at 1200px, with spare panel sitting to
+the right of the bank. Above 601px each group is now `width: max-content` with
+`flex-shrink` left at 1: `fit-content` measures the real labels, and the
+button-level ellipsis stays as the last resort when the row is genuinely tight.
+Below 601px `cgd-responsive.css` lays the bank out as a grid and none of it
+applies.
+
+Note that `qa/audit.py` passed the truncated version. Its clipped-text check
+covers SVG text and native selects, not a `text-overflow: ellipsis` on a button
+label; if that class of defect recurs, that is the check to extend.
+
+### Bar hover
+
+Figure 1's `.focus-ring` fired on `:hover` as well as `:focus`, which drew a
+1px box around every bar the pointer crossed on top of the tooltip already
+naming it. It is now `:focus-visible` only, so the ring is a keyboard affordance
+and the pointer gets the tooltip alone. No other figure in the set drew a hover
+outline on a mark.
 
 ## Verifying a change
 

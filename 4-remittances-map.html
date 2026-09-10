@@ -4,9 +4,9 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>The geography of remittance flows</title>
-<script src="shared/vendor/d3-7.9.0.min.js?v=20260904"></script>
-<script src="shared/vendor/topojson-client-3.1.0.min.js?v=20260904"></script>
-  <script src="shared/vendor/world-atlas-2.0.2-countries-50m.js?v=20260904"></script>
+<script src="shared/vendor/d3-7.9.0.min.js?v=20260910"></script>
+<script src="shared/vendor/topojson-client-3.1.0.min.js?v=20260910"></script>
+  <script src="shared/vendor/world-atlas-2.0.2-countries-50m.js?v=20260910"></script>
 <style>
 :root {
   --ocean: #F4F8FA;
@@ -29,13 +29,7 @@ body { font-size: var(--body-size); }
 .viz-wrapper:fullscreen .tooltip, .viz-wrapper:fullscreen .country-menu { z-index: 2147483647; }
 .viz-wrapper:fullscreen .controls, .viz-wrapper:fullscreen .country-picker { overflow: visible; }
 .viz-wrapper:fullscreen .popup-backdrop { position: fixed; z-index: 2147483647; }
-.descriptor-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 8px; }
-.descriptor-tab { border: 1px solid var(--border); border-radius: 12px; background: #fff; padding: 8px 9px; min-height: 58px; position: relative; overflow: hidden; }
-.descriptor-tab::before { content:""; position:absolute; left:0; top:0; height:3px; width:100%; background: var(--accent, var(--cgd-teal)); border-radius:12px 12px 0 0; }
-.descriptor-title { color: var(--cgd-teal); font-weight:700; font-size:11.5px; margin-bottom:3px; line-height:1.1; min-width:0; }
-.descriptor-line { display:flex; flex-wrap:wrap; align-items:baseline; gap:5px; min-width:0; }
-.descriptor-value { color: var(--cgd-teal-black); font-size:17px; line-height:1.08; font-weight:700; letter-spacing:-0.01em; }
-.descriptor-context { color: var(--cgd-dark-gray); line-height:1.22; font-size:10.5px; font-weight:400; }
+
 .controls { display: flex; flex-wrap: nowrap; gap: 8px; align-items: flex-start; padding: 9px; border: 1px solid var(--border); border-radius: 12px; background: var(--cgd-offwhite); margin-bottom: 8px; overflow: visible; }
 .control-group { min-width:0; position:relative; }
 .control-label, .control-group label { display:block; color: var(--cgd-teal); font-size: var(--label-size); line-height:1.05; font-weight:600; margin-bottom:4px; }
@@ -116,12 +110,7 @@ body { font-size: var(--body-size); }
 .remaining { color:var(--cgd-dark-gray); font-size:11px; line-height:1.35; border-top:1px solid #EDF2F3; padding-top:8px; margin-top:4px; }
 @media (max-width:860px) {
   .viz-wrapper { padding:11px; }
-  .descriptor-tabs { gap:5px; margin-bottom:6px; }
-  .descriptor-tab { min-height:48px; padding:7px 6px 6px; border-radius:10px; }
-  .descriptor-tab::before { height:3px; border-radius:10px 10px 0 0; }
-  .descriptor-title { font-size:var(--fs-min); margin-bottom:2px; }
-  .descriptor-value { font-size:13.2px; }
-  .descriptor-context { font-size:var(--fs-min); }
+
   .controls { gap:5px; padding:6px; margin-bottom:6px; }
   .control-label, .control-group label { font-size:var(--fs-min); margin-bottom:2px; }
   .direction-control { flex-basis:112px; }
@@ -132,38 +121,27 @@ body { font-size: var(--body-size); }
   .scope-control .segmented button { font-size:var(--fs-min); padding-left:6px; padding-right:6px; }
   .country-trigger { height:29px; min-height:29px; font-size:var(--fs-input); padding-top:6px; padding-bottom:6px; }
   .panel-header { grid-template-columns:1fr; gap:6px; }
-  .legend { justify-content:flex-start; min-width:0; }
-  
-}
+  .legend { justify-content:flex-start; min-width:0; }}
 @media (max-width:620px) {
   .controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
   .direction-control, .year-control, .scope-control, .country-picker { flex:none; }
   .country-picker { grid-column:span 2; }
   /* "Intra-regional" does not fit a half-width track at 320px. */
   .scope-control { grid-column:span 2; min-width:0; }
-  .popup-grid { grid-template-columns:1fr; }
-}
+  .popup-grid { grid-template-columns:1fr; }}
 @media (max-width:520px) {
   .viz-wrapper { padding:9px; }
-  .descriptor-tabs { grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; }
-  .descriptor-tab { min-height:45px; padding:5px; border-radius:9px; }
-  .descriptor-tab::before { height:2px; border-radius:9px 9px 0 0; }
-  .descriptor-title { font-size:var(--fs-min); }
-  .descriptor-value { font-size:11.5px; }
-  .descriptor-context { font-size:var(--fs-min); line-height:1.12; }
+
   .controls { gap:4px; padding:5px; border-radius:10px; }
   .control-label, .control-group label { font-size:var(--fs-min); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .segmented { min-height:25px; padding:2px; }
   .segmented button { font-size:var(--fs-min); padding:3px 4px; }
   .scope-control .segmented button { font-size:var(--fs-min); padding-left:2px; padding-right:2px; letter-spacing:-0.025em; text-overflow:clip; }
   .country-trigger { height:25px; min-height:25px; font-size:var(--fs-input); }
-  .country-menu { position:fixed; left:12px; right:12px; top:78px; }
-  
-}
-@media (max-width:460px) { .fullscreen-btn { width:29px; height:29px; } }
-</style>
-  <link rel="stylesheet" href="shared/cgd-figure.css?v=20260904">
-  <link rel="stylesheet" href="shared/cgd-responsive.css?v=20260904">
+  .country-menu { position:fixed; left:12px; right:12px; top:78px; }}
+@media (max-width:460px) { .fullscreen-btn { width:29px; height:29px; }}</style>
+  <link rel="stylesheet" href="shared/cgd-figure.css?v=20260910">
+  <link rel="stylesheet" href="shared/cgd-responsive.css?v=20260910">
 </head>
 <body>
 <div id="vizRoot" class="viz-wrapper">
@@ -193,7 +171,7 @@ body { font-size: var(--body-size); }
   <div class="tooltip" id="tooltip" hidden></div>
   <div class="popup-backdrop" id="popup" role="dialog" aria-modal="true" aria-labelledby="popupTitle"><div class="popup-card"><div class="popup-top"><div><h3 class="popup-title" id="popupTitle"></h3><p class="popup-sub" id="popupSub"></p></div><button type="button" class="popup-close" id="popupClose" aria-label="Close popup">×</button></div><div id="popupBody"></div></div></div>
 </div>
-<script src="data/4-remittances-map.js?v=20260904"></script>
+<script src="data/4-remittances-map.js?v=20260910"></script>
 <script>
 (function() {
   const DATA = JSON.parse(CGD_VIZ_DATA);
@@ -213,7 +191,7 @@ body { font-size: var(--body-size); }
     detailsState = 'loading';
     detailsPromise = new Promise(resolve => {
       const el = document.createElement('script');
-      el.src = 'data/4-remittances-map-details.js?v=20260904';
+      el.src = 'data/4-remittances-map-details.js?v=20260910';
       el.onload = () => {
         try { DATA.flowStats = JSON.parse(CGD_VIZ_DETAILS); } catch (e) { /* keep {} */ }
         detailsState = 'ready';
@@ -528,7 +506,7 @@ body { font-size: var(--body-size); }
 
   function renderDescriptorTabs(cards) {
     document.getElementById('descriptorTabs').innerHTML = cards.map(card => `
-      <div class="descriptor-tab" style="--accent:${card.accent || '#0B4C5B'}">
+      <div class="descriptor-tab">
         <div class="descriptor-title">${escapeHtml(card.title)}</div>
         <div class="descriptor-line"><span class="descriptor-value">${escapeHtml(card.value)}</span><span class="descriptor-context">${escapeHtml(card.context || '')}</span></div>
       </div>`).join('');
@@ -555,9 +533,9 @@ body { font-size: var(--body-size); }
       if (val == null) { totalValue = 'N/A'; totalContext = 'not allocated in this view'; }
     }
     return [
-      {title:'Selected total', value:totalValue, context:totalContext, accent:'#0B4C5B'},
-      {title:'Corridors shown', value:`${fmtInt.format(shownRows.length)}`, context:`of ${fmtInt.format(mappedTotal)} mapped; ${pct(shownShare)} of value`, accent:accentByDirection[state.direction]},
-      {title:'Largest corridor', value:`$${formatMoney(largest?.v || 0)}`, context:largestMeta, accent:'#FFB52C'}
+      {title:'Selected total', value:totalValue, context:totalContext},
+      {title:'Corridors shown', value:`${fmtInt.format(shownRows.length)}`, context:`of ${fmtInt.format(mappedTotal)} mapped; ${pct(shownShare)} of value`, },
+      {title:'Largest corridor', value:`$${formatMoney(largest?.v || 0)}`, context:largestMeta}
     ];
   }
   function countryFill(meta) { return incomeColours[meta?.income || ''] || incomeColours['']; }
@@ -969,9 +947,9 @@ body { font-size: var(--body-size); }
       emptyState.hidden = false;
       emptyState.textContent = 'The map geometry could not be loaded. Reload the page; if it persists, the figure needs attention.';
       renderDescriptorTabs([
-        {title:'2024 total', value:`$${formatMoney(Number(DATA.totalsByYear['2024'] || 0))}`, context:'modelled corridors', accent:'#0B4C5B'},
-        {title:'2021 total', value:`$${formatMoney(Number(DATA.totalsByYear['2021'] || 0))}`, context:'modelled corridors', accent:'#85A5AD'},
-        {title:'Flows loaded', value:`${fmtInt.format(DATA.flows.length)}`, context:'corridors', accent:'#FFB52C'}
+        {title:'2024 total', value:`$${formatMoney(Number(DATA.totalsByYear['2024'] || 0))}`, context:'modelled corridors'},
+        {title:'2021 total', value:`$${formatMoney(Number(DATA.totalsByYear['2021'] || 0))}`, context:'modelled corridors'},
+        {title:'Flows loaded', value:`${fmtInt.format(DATA.flows.length)}`, context:'corridors'}
       ]);
     }
   }
@@ -996,6 +974,6 @@ body { font-size: var(--body-size); }
   });
 })();
 </script>
-  <script src="shared/cgd-embed.js?v=20260904"></script>
+  <script src="shared/cgd-embed.js?v=20260910"></script>
 </body>
 </html>
