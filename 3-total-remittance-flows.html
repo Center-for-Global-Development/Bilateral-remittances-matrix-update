@@ -82,8 +82,8 @@ svg{display:block;width:100%;height:100%}
   .controls{width:fit-content;max-width:100%}
 }
 </style>
-  <link rel="stylesheet" href="shared/cgd-figure.css?v=20260910">
-  <link rel="stylesheet" href="shared/cgd-responsive.css?v=20260910">
+  <link rel="stylesheet" href="shared/cgd-figure.css?v=20260928">
+  <link rel="stylesheet" href="shared/cgd-responsive.css?v=20260928">
 </head>
 <body>
 <div id="vizRoot" class="viz-wrapper">
@@ -117,7 +117,7 @@ svg{display:block;width:100%;height:100%}
   <div class="notes"><strong>Notes:</strong> Each dot is a recipient country/economy with data in both 2021 and 2024. Values are modelled current US$ remittance inflow estimates. Axes use a logarithmic US$ scale to show both small and large recipients; the dashed line marks no change.</div>
   <div class="tooltip" id="tooltip" hidden></div>
 </div>
-<script src="data/3-total-remittance-flows.js?v=20260910"></script>
+<script src="data/1-total-remittance-flows.js?v=20260928"></script>
 <script>
 (() => {
   const data = JSON.parse(CGD_VIZ_DATA);
@@ -420,6 +420,6 @@ svg{display:block;width:100%;height:100%}
 })();
 window.cgdRendered = true; document.dispatchEvent(new Event('cgd:rendered'));
 </script>
-  <script src="shared/cgd-embed.js?v=20260910"></script>
+  <script src="shared/cgd-embed.js?v=20260928"></script>
 </body>
 </html>

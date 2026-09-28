@@ -46,7 +46,8 @@ h1 { margin: 0; color: var(--cgd-teal); font-size: var(--title-size-desktop); li
 /* Keyboard only. The ring used to appear on hover too, which drew a box round
  * every bar the pointer crossed; the tooltip already says which bar is live. */
 .bar-col:focus-visible .focus-ring { stroke: rgba(11,76,91,0.34); stroke-width: 1; fill: transparent; }
-.bar-col.selected .focus-ring { stroke: var(--cgd-teal-black); stroke-width: 1.5; fill: transparent; }
+/* A selected column is marked by the tick above it, not by a box around it. The
+ * box read as a stuck hover state and there was no obvious way to dismiss it. */
 .bar-col.dimmed .bar-fill { fill: var(--cgd-light-gray); opacity: 0.58; }
 .bar-col.selected .selected-marker { display: block; }
 .selected-marker { display: none; }
@@ -377,8 +378,8 @@ html { scrollbar-gutter: stable; }
     max-width: none;
   }
 }</style>
-  <link rel="stylesheet" href="shared/cgd-figure.css?v=20260910">
-  <link rel="stylesheet" href="shared/cgd-responsive.css?v=20260910">
+  <link rel="stylesheet" href="shared/cgd-figure.css?v=20260928">
+  <link rel="stylesheet" href="shared/cgd-responsive.css?v=20260928">
 </head>
 <body>
 <div id="coverageExplorer" class="viz-wrapper">
@@ -399,7 +400,7 @@ html { scrollbar-gutter: stable; }
   <div class="tooltip" id="tooltip"></div>
   <div class="popup-backdrop" id="countryPopup" role="dialog" aria-modal="true" aria-labelledby="popupTitle"><div class="popup-card"><div class="popup-top"><div><h3 class="popup-title" id="popupTitle"></h3><p class="popup-sub" id="popupSub"></p></div><button class="popup-close" id="popupClose" type="button" aria-label="Close country summary">×</button></div><div id="popupBody"></div></div></div><div class="popup-backdrop sub-popup" id="corridorPopup" role="dialog" aria-modal="true" aria-labelledby="corridorPopupTitle"><div class="popup-card sub-popup-card"><div class="popup-top"><div><h3 class="popup-title" id="corridorPopupTitle"></h3><p class="popup-sub" id="corridorPopupSub"></p></div><button class="popup-close" id="corridorPopupClose" type="button" aria-label="Close missing corridors">×</button></div><div id="corridorPopupBody"></div></div></div>
 </div>
-<script src="data/1-data-coverage-gaps.js?v=20260910"></script>
+<script src="data/11-data-coverage-gaps.js?v=20260928"></script>
 <script>
 
 
@@ -566,7 +567,7 @@ function renderRecipientChart(data) {
     const fill=regionColor(d.region);
     const hitW=Math.max(barW+4, step*0.86);
     const hitX=margin.left+i*step+(step-hitW)/2;
-    svg+=`<g class="bar-col${selected?' selected':''}${dimmed?' dimmed':''}" tabindex="0" role="button" aria-label="${escapeHtml(d.country)} corridor summary" data-code="${d.code}"><rect class="hit-area" x="${hitX}" y="${margin.top}" width="${hitW}" height="${innerH}" fill="transparent"></rect><rect class="focus-ring" x="${focusX}" y="${focusY}" width="${focusW}" height="${focusH}" rx="3" ry="3" fill="transparent" stroke="transparent"></rect><rect class="bar-fill" x="${x}" y="${y}" width="${barW}" height="${barH}" rx="${barW<5?1:3}" ry="${barW<5?1:3}" fill="${fill}"></rect><line class="selected-marker" x1="${cx}" y1="${Math.max(6,y-13)}" x2="${cx}" y2="${Math.max(12,y-5)}" stroke="var(--cgd-teal-black)" stroke-width="1.4" stroke-linecap="round"></line>${showValueLabels?`<text class="bar-label" x="${cx}" y="${Math.max(10,y-5)}" text-anchor="middle">${pct}</text>`:''}${showLabels?`<text class="category-label" x="${cx}" y="${margin.top+innerH+14}" text-anchor="end" transform="rotate(-45 ${cx} ${margin.top+innerH+14})">${escapeHtml(label)}</text>`:''}</g>`;
+    svg+=`<g class="bar-col${selected?' selected':''}${dimmed?' dimmed':''}" tabindex="0" role="button" aria-label="${escapeHtml(d.country)} corridor summary" data-code="${d.code}"><rect class="hit-area" x="${hitX}" y="${margin.top}" width="${hitW}" height="${innerH}" fill="transparent"></rect><rect class="focus-ring" x="${focusX}" y="${focusY}" width="${focusW}" height="${focusH}" rx="3" ry="3" fill="transparent" stroke="transparent"></rect><rect class="bar-fill" x="${x}" y="${y}" width="${barW}" height="${barH}" rx="${barW<5?1:3}" ry="${barW<5?1:3}" fill="${fill}"></rect><line class="selected-marker" x1="${cx}" y1="${Math.max(5,y-14)}" x2="${cx}" y2="${Math.max(11,y-5)}" stroke="var(--cgd-teal-black)" stroke-width="2.2" stroke-linecap="round"></line>${showValueLabels?`<text class="bar-label" x="${cx}" y="${Math.max(10,y-5)}" text-anchor="middle">${pct}</text>`:''}${showLabels?`<text class="category-label" x="${cx}" y="${margin.top+innerH+14}" text-anchor="end" transform="rotate(-45 ${cx} ${margin.top+innerH+14})">${escapeHtml(label)}</text>`:''}</g>`;
   });
   el.innerHTML=svg;
   renderRegionLegend(items);
@@ -574,12 +575,31 @@ function renderRecipientChart(data) {
     const code=node.dataset.code, d=data.recipients.find(x=>x.code===code);
     node.addEventListener('mousemove',evt=>showTooltip(evt,`<strong>${escapeHtml(d.country)}</strong><br>${escapeHtml(d.region||'Uncategorised')}<br>${fmtPct(d.gapShare)} of corridors affected<br>${fmtInt(d.gapCorridors)} of ${fmtInt(d.totalCorridors)} corridors<br>${fmtInt(d.scoredCorridors)} scored and allocated${d.partialCoverage?'<br>Partial migrant-stock coverage flagged':''}`));
     node.addEventListener('mouseleave',hideTooltip);
-    node.addEventListener('click',()=>{ state.country=code; setCountryInput(); render(); openCountryPopup(code); });
-    node.addEventListener('keydown',evt=>{ if(evt.key==='Enter'||evt.key===' ') { evt.preventDefault(); state.country=code; setCountryInput(); render(); openCountryPopup(code); } });
+    node.addEventListener('click',()=>{ if(state.country===code) { clearCountrySelection(); return; } selectCountry(code); });
+    node.addEventListener('keydown',evt=>{ if(evt.key==='Enter'||evt.key===' ') { evt.preventDefault(); if(state.country===code) clearCountrySelection(); else selectCountry(code); } });
   });
 }
+function selectCountry(code) { state.country=code; setCountryInput(); render(); openCountryPopup(code); }
+/* Selecting a column has to be reversible from the chart itself. Clicking the
+ * selected column again, clicking the space around the columns, or pressing
+ * Escape all return the chart to every recipient — the dropdown's "All
+ * countries" row is no longer the only way back. */
+function clearCountrySelection() {
+  if(state.country==='ALL') return;
+  state.country='ALL'; setCountryInput(); closeCountryPopup(); render();
+}
+document.getElementById('chartArea').addEventListener('click',evt=>{
+  if(state.view!=='countries' || state.country==='ALL') return;
+  if(evt.target.closest('.bar-col') || evt.target.closest('.region-legend')) return;
+  clearCountrySelection();
+});
 function setCountryInput() { if(state.country==='ALL') countryInput.value='All countries'; else { const d=getRecipient(state.country); countryInput.value=d?d.country:'All countries'; } }
-function renderCountryOptions(filterText='') { const f=String(filterText||'').toLowerCase().trim(); const recipients=currentData().recipients.slice().sort((a,b)=>a.country.localeCompare(b.country)); const options=[{code:'ALL',country:'All countries'},...recipients].filter(d=>!f||d.country.toLowerCase().includes(f)||d.code.toLowerCase().includes(f)).slice(0,120); countryMenu.innerHTML=options.length?options.map(d=>`<button type="button" class="select-option${d.code===state.country?' active':''}" role="option" data-code="${d.code}" aria-selected="${d.code===state.country}">${escapeHtml(d.country)}</button>`).join(''):`<div class="select-empty">No matching recipients</div>`; countryMenu.querySelectorAll('.select-option').forEach(btn=>{btn.addEventListener('mousedown',evt=>evt.preventDefault()); btn.addEventListener('click',()=>{state.country=btn.dataset.code; setCountryInput(); closeCountryMenu(); render(); if(state.country!=='ALL') openCountryPopup(state.country); else closeCountryPopup();});}); }
+/* "All countries" is a reset, not a search result. It used to sit in the same
+ * list as the recipients and be filtered out by whatever was in the box — so
+ * once a country was chosen, reopening the menu showed that country alone and
+ * the way back to every recipient had disappeared. It is now pinned above the
+ * matches whatever has been typed. */
+function renderCountryOptions(filterText='') { const f=String(filterText||'').toLowerCase().trim(); const recipients=currentData().recipients.slice().sort((a,b)=>a.country.localeCompare(b.country)); const matches=recipients.filter(d=>!f||d.country.toLowerCase().includes(f)||d.code.toLowerCase().includes(f)).slice(0,120); const options=[{code:'ALL',country:'All countries'},...matches]; countryMenu.innerHTML=options.map(d=>`<button type="button" class="select-option${d.code===state.country?' active':''}" role="option" data-code="${d.code}" aria-selected="${d.code===state.country}">${escapeHtml(d.country)}</button>`).join('')+(matches.length?'':`<div class="select-empty">No matching recipients</div>`); countryMenu.querySelectorAll('.select-option').forEach(btn=>{btn.addEventListener('mousedown',evt=>evt.preventDefault()); btn.addEventListener('click',()=>{state.country=btn.dataset.code; setCountryInput(); closeCountryMenu(); render(); if(state.country!=='ALL') openCountryPopup(state.country); else closeCountryPopup();});}); }
 function openCountryMenu() { renderCountryOptions(countryInput.value==='All countries'?'':countryInput.value); countrySelect.classList.add('open'); countryInput.setAttribute('aria-expanded','true'); }
 function closeCountryMenu() { countrySelect.classList.remove('open'); countryInput.setAttribute('aria-expanded','false'); }
 countryInput.addEventListener('focus',()=>{countryInput.select(); openCountryMenu();});
@@ -622,7 +642,7 @@ popupClose.addEventListener('click',closeCountryPopup);
 corridorPopupClose.addEventListener('click',closeCorridorPopup);
 countryPopup.addEventListener('click',evt=>{ if(evt.target===countryPopup) closeCountryPopup(); });
 corridorPopup.addEventListener('click',evt=>{ if(evt.target===corridorPopup) closeCorridorPopup(); });
-document.addEventListener('keydown',evt=>{ if(evt.key==='Escape') { if(corridorPopup.classList.contains('open')) closeCorridorPopup(); else { closeCountryPopup(); closeCountryMenu(); } } });
+document.addEventListener('keydown',evt=>{ if(evt.key==='Escape') { if(corridorPopup.classList.contains('open')) closeCorridorPopup(); else if(countrySelect.classList.contains('open')||countryPopup.classList.contains('open')) { closeCountryPopup(); closeCountryMenu(); } else clearCountrySelection(); } });
 function updateControls() {
   document.querySelectorAll('#yearToggle button').forEach(b=>b.classList.toggle('active',b.dataset.year===state.year));
   document.querySelectorAll('#viewToggle button').forEach(b=>b.classList.toggle('active',b.dataset.view===state.view));
@@ -643,5 +663,5 @@ window.addEventListener('resize',()=>requestAnimationFrame(render));
 syncFullscreenButton(); render();
 window.cgdRendered = true; document.dispatchEvent(new Event('cgd:rendered'));
 </script>
-  <script src="shared/cgd-embed.js?v=20260910"></script>
+  <script src="shared/cgd-embed.js?v=20260928"></script>
 </body></html>

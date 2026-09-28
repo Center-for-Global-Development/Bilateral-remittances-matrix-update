@@ -34,8 +34,8 @@
 .change-down::after{transform:translateY(-50%) rotate(45deg)}
 .change-flat{background:#C9D8DC}
 .change-flat::after{display:none}</style>
-  <link rel="stylesheet" href="shared/cgd-figure.css?v=20260910">
-  <link rel="stylesheet" href="shared/cgd-responsive.css?v=20260910">
+  <link rel="stylesheet" href="shared/cgd-figure.css?v=20260928">
+  <link rel="stylesheet" href="shared/cgd-responsive.css?v=20260928">
 </head>
 <body>
 <div id="vizRoot" class="viz-wrapper">
@@ -90,7 +90,7 @@
     </div>
   </div>
 </div>
-<script src="data/12-remittance-corridors-vs-gni.js?v=20260910"></script>
+<script src="data/10-remittance-corridors-vs-gni.js?v=20260928"></script>
 <script>
 const DATA = JSON.parse(CGD_VIZ_DATA);
 const state = { role:'recipient', country:'ALL', limit:15, page:0, regions:[...(DATA.summary?.regions || [])] };
@@ -431,6 +431,6 @@ syncFullscreenButton();
 render();
 window.cgdRendered = true; document.dispatchEvent(new Event('cgd:rendered'));
 </script>
-  <script src="shared/cgd-embed.js?v=20260910"></script>
+  <script src="shared/cgd-embed.js?v=20260928"></script>
 </body>
 </html>

@@ -48,12 +48,14 @@ body{font-size:var(--body-size)}
 .row-header{justify-content:center;text-align:center;min-height:60px;padding:7px 8px}
 .header-label,.row-label,.total-label{display:block;font-size:11.2px;font-weight:700;line-height:1.14;letter-spacing:-.005em}
 .row-label{max-width:104px;margin:0 auto;white-space:normal;word-break:normal}
-.corner{position:relative;padding:0;min-height:78px;overflow:hidden;display:block}
-.corner-line{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.corner-line line{stroke:var(--border);stroke-width:1.35;vector-effect:non-scaling-stroke}
-.corner-source,.corner-recipient{position:absolute;z-index:1;display:block;font-size:var(--fs-min);font-weight:700;line-height:1.12;color:var(--matrix-accent);letter-spacing:-.01em}
-.corner-source{top:10px;right:12px;width:46%;text-align:right}
-.corner-recipient{left:12px;bottom:10px;width:50%;text-align:left}
+/* The corner used to be a box split by a diagonal rule, with "Source region"
+ * pinned above it and "Recipient region" below. It made the reader decode a
+ * diagram before reading the matrix. The corner now simply labels the column it
+ * sits above — the row headers — and the source axis is named once, in a banner
+ * over the columns it belongs to. */
+.corner{font-size:var(--fs-min);font-weight:700;line-height:1.14;letter-spacing:-.005em}
+.axis-banner{display:flex;align-items:flex-end;justify-content:center;padding:0 6px 3px;color:var(--cgd-dark-gray);font-size:var(--fs-min);font-weight:600;line-height:1.14}
+.axis-spacer{position:sticky;left:0;z-index:4;background:#fff}
 .cell,.total-cell,.grand-cell{min-height:60px;border:1px solid rgba(26,39,42,.10);border-radius:9px;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px}
 .cell{background:var(--cell-bg);color:var(--cell-fg,var(--cgd-teal-black));cursor:pointer;transition:transform .08s ease,box-shadow .08s ease,border-color .08s ease}
 .cell:hover,.cell:focus{outline:none;transform:translateY(-1px);border-color:rgba(45,153,181,.42);box-shadow:0 0 0 3px rgba(45,153,181,.12),0 7px 16px rgba(26,39,42,.10)}
@@ -92,12 +94,8 @@ body{font-size:var(--body-size)}
   .grid-scroll{padding:7px}
   .heat-grid{min-width:734px;grid-template-columns:118px repeat(7,76px) 60px;gap:3px}
   .corner,.col-header,.total-header{min-height:54px;padding:6px}
-  .corner{min-height:74px}
   .row-header,.cell,.total-cell,.grand-cell{min-height:56px;padding:6px}
   .header-label,.row-label,.total-label{font-size:var(--fs-min)}
-  .corner-source,.corner-recipient{font-size:var(--fs-min)}
-  .corner-source{top:9px;right:10px}
-  .corner-recipient{left:10px;bottom:9px}
   .cell-value,.total-value,.grand-value{font-size:11.3px}
 }
 @media (max-width:520px){
@@ -111,11 +109,7 @@ body{font-size:var(--body-size)}
   .grid-scroll{padding:6px}
   .heat-grid{min-width:708px;grid-template-columns:112px repeat(7,72px) 56px;gap:3px}
   .corner,.col-header,.row-header,.total-header{padding:6px}
-  .corner{min-height:70px}
   .header-label,.row-label,.total-label{font-size:var(--fs-min)}
-  .corner-source,.corner-recipient{font-size:var(--fs-min)}
-  .corner-source{top:8px;right:9px}
-  .corner-recipient{left:9px;bottom:8px}
   .cell-value,.total-value,.grand-value{font-size:10.4px}
   .corridor-row{grid-template-columns:1fr;gap:4px}
   .corridor-value{text-align:left}
@@ -129,11 +123,10 @@ body{font-size:var(--body-size)}
   .segmented button{font-size:var(--fs-min);padding-left:5px;padding-right:5px}
   .heat-grid{min-width:672px;grid-template-columns:106px repeat(7,68px) 54px}
   .header-label,.row-label,.total-label{font-size:var(--fs-min)}
-  .corner-source,.corner-recipient{font-size:var(--fs-min)}
 }
   </style>
-  <link rel="stylesheet" href="shared/cgd-figure.css?v=20260910">
-  <link rel="stylesheet" href="shared/cgd-responsive.css?v=20260910">
+  <link rel="stylesheet" href="shared/cgd-figure.css?v=20260928">
+  <link rel="stylesheet" href="shared/cgd-responsive.css?v=20260928">
   <style>
     .grid-scroll { position: relative; isolation: isolate; padding-left: 0 !important; }
     .corner, .row-header, .row-total-header {
@@ -206,7 +199,7 @@ body{font-size:var(--body-size)}
     </div>
   </div>
 
-  <script src="data/5-remittance-flows-regions.js?v=20260910"></script>
+  <script src="data/3-remittance-flows-regions.js?v=20260928"></script>
   <script>
 
 const state = {year:'2024',metric:'usd'};
@@ -378,7 +371,10 @@ function render() {
   const total = getGlobalTotal();
   const parts = [];
 
-  parts.push(`<div class="corner" aria-label="Rows show recipient region; columns show source region"><svg class="corner-line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="0" x2="100" y2="100"></line></svg><span class="corner-source">Source region</span><span class="corner-recipient">Recipient region</span></div>`);
+  parts.push(`<div class="axis-spacer" aria-hidden="true"></div>`);
+  parts.push(`<div class="axis-banner" style="grid-column:span ${groups.length}">Source region</div>`);
+  parts.push(`<div class="axis-spacer" aria-hidden="true"></div>`);
+  parts.push(`<div class="corner"><span class="header-label">Recipient region</span></div>`);
 
   groups.forEach(g => parts.push(`<div class="col-header"><span class="header-label">${escapeHtml(g.label)}</span></div>`));
   parts.push(`<div class="total-header"><span class="total-label">Total</span></div>`);
@@ -494,6 +490,6 @@ syncFullscreenButton();
 render();
   window.cgdRendered = true; document.dispatchEvent(new Event('cgd:rendered'));
 </script>
-  <script src="shared/cgd-embed.js?v=20260910"></script>
+  <script src="shared/cgd-embed.js?v=20260928"></script>
 </body>
 </html>

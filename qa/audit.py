@@ -165,12 +165,32 @@ AUDIT = r"""(cfg)=>{
      push('tap target too small',{txt:(n.textContent||n.id||n.type).trim().slice(0,22),
        h:Math.round(h),min:cfg.minTap});}
 
- // 7. Editable inputs below 16px zoom-jump on iOS. Non-negotiable.
- for(const n of document.querySelectorAll(
-     'input:not([type=checkbox]):not([type=radio]):not([type=hidden]),textarea')){
-   if(!shown(n))continue;
-   const fs=parseFloat(getComputedStyle(n).fontSize);
-   if(fs<cfg.minInput-0.1)push('editable input below 16px',{id:n.id||n.type,fs});}
+ // 7. Editable inputs.
+ //
+ // On a coarse pointer, below 16px is a zoom-jump on iOS. Non-negotiable, and
+ // the phone widths below run with touch emulation on so this branch is the one
+ // that actually executes there.
+ //
+ // On a fine pointer there is no zoom to defend against, and the old blanket
+ // 16px left a combobox input visibly larger than the native select beside it
+ // in the same bank. So what is checked here instead is that they agree: every
+ // editable input in a control bank must match the other controls in that bank.
+ {const coarse=window.matchMedia('(pointer: coarse)').matches;
+  for(const n of document.querySelectorAll(
+      'input:not([type=checkbox]):not([type=radio]):not([type=hidden]),textarea')){
+    if(!shown(n))continue;
+    const fs=parseFloat(getComputedStyle(n).fontSize);
+    if(coarse){
+      if(fs<cfg.minInput-0.1)push('editable input below 16px on a coarse pointer',{id:n.id||n.type,fs});
+      continue;}
+    const bank=n.closest('.controls,.remit-viz__controls');
+    if(!bank)continue;
+    for(const peer of bank.querySelectorAll('select,.country-trigger,.combo__button,.select-trigger')){
+      if(!shown(peer))continue;
+      const pfs=parseFloat(getComputedStyle(peer).fontSize);
+      if(Math.abs(pfs-fs)>0.1){
+        push('control bank mixes text sizes',{id:n.id||n.type,input:fs,peer:peer.id||peer.className,peerFs:pfs});
+        break;}}}}
 
  // 8. Text below the note floor.
  for(const n of document.querySelectorAll('.viz-wrapper *')){
@@ -383,7 +403,12 @@ def main():
         for f in figs:
             lines = []
             for w in widths:
-                page = browser.new_page(viewport={'width': w, 'height': 900})
+                # Phone widths run as phones: touch emulation makes
+                # `(pointer: coarse)` match, which is what the 16px editable-input
+                # floor is actually conditioned on. Without this the audit only
+                # ever saw a mouse and could not test the floor at all.
+                page = browser.new_page(viewport={'width': w, 'height': 900},
+                                        has_touch=w <= 430)
                 errors = []
                 page.on('console', lambda m: errors.append(m.text) if m.type == 'error' else None)
                 page.on('pageerror', lambda e: errors.append(str(e)))

@@ -4,9 +4,9 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>The geography of remittance flows</title>
-<script src="shared/vendor/d3-7.9.0.min.js?v=20260910"></script>
-<script src="shared/vendor/topojson-client-3.1.0.min.js?v=20260910"></script>
-  <script src="shared/vendor/world-atlas-2.0.2-countries-50m.js?v=20260910"></script>
+<script src="shared/vendor/d3-7.9.0.min.js?v=20260928"></script>
+<script src="shared/vendor/topojson-client-3.1.0.min.js?v=20260928"></script>
+  <script src="shared/vendor/world-atlas-2.0.2-countries-50m.js?v=20260928"></script>
 <style>
 :root {
   --ocean: #F4F8FA;
@@ -140,8 +140,8 @@ body { font-size: var(--body-size); }
   .country-trigger { height:25px; min-height:25px; font-size:var(--fs-input); }
   .country-menu { position:fixed; left:12px; right:12px; top:78px; }}
 @media (max-width:460px) { .fullscreen-btn { width:29px; height:29px; }}</style>
-  <link rel="stylesheet" href="shared/cgd-figure.css?v=20260910">
-  <link rel="stylesheet" href="shared/cgd-responsive.css?v=20260910">
+  <link rel="stylesheet" href="shared/cgd-figure.css?v=20260928">
+  <link rel="stylesheet" href="shared/cgd-responsive.css?v=20260928">
 </head>
 <body>
 <div id="vizRoot" class="viz-wrapper">
@@ -171,7 +171,7 @@ body { font-size: var(--body-size); }
   <div class="tooltip" id="tooltip" hidden></div>
   <div class="popup-backdrop" id="popup" role="dialog" aria-modal="true" aria-labelledby="popupTitle"><div class="popup-card"><div class="popup-top"><div><h3 class="popup-title" id="popupTitle"></h3><p class="popup-sub" id="popupSub"></p></div><button type="button" class="popup-close" id="popupClose" aria-label="Close popup">×</button></div><div id="popupBody"></div></div></div>
 </div>
-<script src="data/4-remittances-map.js?v=20260910"></script>
+<script src="data/2-remittances-map.js?v=20260928"></script>
 <script>
 (function() {
   const DATA = JSON.parse(CGD_VIZ_DATA);
@@ -191,7 +191,7 @@ body { font-size: var(--body-size); }
     detailsState = 'loading';
     detailsPromise = new Promise(resolve => {
       const el = document.createElement('script');
-      el.src = 'data/4-remittances-map-details.js?v=20260910';
+      el.src = 'data/2-remittances-map-details.js?v=20260928';
       el.onload = () => {
         try { DATA.flowStats = JSON.parse(CGD_VIZ_DETAILS); } catch (e) { /* keep {} */ }
         detailsState = 'ready';
@@ -974,6 +974,6 @@ body { font-size: var(--body-size); }
   });
 })();
 </script>
-  <script src="shared/cgd-embed.js?v=20260910"></script>
+  <script src="shared/cgd-embed.js?v=20260928"></script>
 </body>
 </html>

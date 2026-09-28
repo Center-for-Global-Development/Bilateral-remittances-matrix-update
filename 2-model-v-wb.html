@@ -167,26 +167,6 @@ body { font-size: var(--body-size); }
 .remit-segment button[aria-pressed="true"] { background: var(--cgd-teal); color: #fff; font-weight: 650; }
 .remit-segment button:hover:not([aria-pressed="true"]), .remit-segment button:focus:not([aria-pressed="true"]) { background: #eef4f5; outline: none; }
 
-.remit-viz__cards {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
-  margin-bottom: 8px;
-}
-.remit-card {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #fff;
-  padding: 8px 8px 7px;
-  min-height: 54px;
-  position: relative;
-  overflow: hidden;
-}
-.remit-card::before { content: ""; position: absolute; left: 0; top: 0; height: 3px; width: 100%; background: var(--cgd-teal); }
-.remit-card__label { color: var(--cgd-teal); font-weight: 700; font-size: 11px; margin-bottom: 3px; line-height: 1.15; }
-.remit-card__line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 5px; min-width: 0; }
-.remit-card__figure { color: var(--cgd-teal-black); font-size: 17px; line-height: 1.08; font-weight: 700; letter-spacing: -0.01em; }
-.remit-card__qualifier { color: var(--cgd-dark-gray); line-height: 1.22; font-size: 10.4px; font-weight: 400; letter-spacing: 0; }
 
 .remit-viz__chart-title { display: none; }
 .remit-viz__legend {
@@ -260,11 +240,6 @@ body { font-size: var(--body-size); }
   .combo__button::after { width: 7px; height: 7px; right: 8px; }
   .remit-segment { min-height: 29px; padding: 2px; gap: 1px; }
   .remit-segment button { font-size:var(--fs-min); padding: 4px 3px; }
-  .remit-viz__cards { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; margin-bottom: 6px; }
-  .remit-card { min-height: 48px; padding: 7px 6px 6px; border-radius: 10px; }
-  .remit-card__label { font-size:var(--fs-min); margin-bottom: 2px; }
-  .remit-card__figure { font-size: 13.5px; }
-  .remit-card__qualifier { font-size:var(--fs-min); }
   .axis { font-size:var(--fs-min); }
 }
 @media (max-width: 650px) {
@@ -279,13 +254,11 @@ body { font-size: var(--body-size); }
   .combo__button { font-size:var(--fs-min); }
   .remit-segment button { font-size:var(--fs-min); padding-left: 1px; padding-right: 1px; }
   .combo__menu { position: fixed; left: 12px; right: 12px; top: 78px; }
-  .remit-viz__cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .remit-card__figure { font-size: 13px; }
 }
 
 </style>
-  <link rel="stylesheet" href="shared/cgd-figure.css?v=20260910">
-  <link rel="stylesheet" href="shared/cgd-responsive.css?v=20260910">
+  <link rel="stylesheet" href="shared/cgd-figure.css?v=20260928">
+  <link rel="stylesheet" href="shared/cgd-responsive.css?v=20260928">
 </head>
 <body>
 <div class="remit-viz viz-wrapper" id="remitViz">
@@ -319,7 +292,7 @@ body { font-size: var(--body-size); }
     </div>
   </div>
 
-  <div class="remit-viz__cards" id="cards"></div>
+  <div class="kpis" id="cards"></div>
 
   <div class="remit-viz__chart-title">
     <div>
@@ -549,7 +522,7 @@ body { font-size: var(--body-size); }
       { label: 'World Bank outflows', figure: formatUsdWithDollar(totalWb), qualifier: 'remittances sent' },
       { label: 'Model–WB gap', figure: formatUsdWithDollar(gap), qualifier: gapQualifier }
     ];
-    cardsEl.innerHTML = cards.map(c => `<div class="remit-card"><div class="remit-card__label">${escapeHtml(c.label)}</div><div class="remit-card__line"><span class="remit-card__figure">${escapeHtml(c.figure)}</span><span class="remit-card__qualifier">${escapeHtml(c.qualifier)}</span></div></div>`).join('');
+    cardsEl.innerHTML = cards.map(c => `<div class="kpi"><div class="kpi-title">${escapeHtml(c.label)}</div><div class="kpi-value"><span>${escapeHtml(c.figure)}</span><span class="kpi-context">${escapeHtml(c.qualifier)}</span></div></div>`).join('');
   }
 
   function updateTitleAndLegend() {
@@ -864,6 +837,6 @@ body { font-size: var(--body-size); }
 })();
 window.cgdRendered = true; document.dispatchEvent(new Event('cgd:rendered'));
 </script>
-  <script src="shared/cgd-embed.js?v=20260910"></script>
+  <script src="shared/cgd-embed.js?v=20260928"></script>
 </body>
 </html>

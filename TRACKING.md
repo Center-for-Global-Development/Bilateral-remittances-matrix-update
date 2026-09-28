@@ -32,18 +32,22 @@ Two elements were removed in that pass; neither was ever tracked: figure 10's in
 
 | File / `interactive_name` | Tracked engagements |
 |---|---|
-| `1-data-coverage-gaps.html` / `bilateral-remittances-data-coverage` | `filter/year`; `view_control/coverage_view`; `filter/corridor_limit`; `filter/country`; `filter/region`; `detail_open/country_detail`; `detail_open/corridor_detail`; `detail_close/country_detail`; `detail_close/corridor_detail`; `view_control/fullscreen` |
-| `2-model-v-wb.html` / `bilateral-remittances-model-v-world-bank` | `filter/income_group`; `filter/country`; `filter/year`; `view_control/fullscreen` |
-| `3-total-remittance-flows.html` / `bilateral-remittances-total-flows` | `filter/income_group`; `filter/country`; `filter/region`; `view_control/fullscreen` |
-| `4-remittances-map.html` / `bilateral-remittances-map` | `view_control/flow_direction`; `filter/year`; `view_control/map_scope`; `filter/country`; `detail_open/country_detail`; `detail_open/corridor_detail`; matching `detail_close/country_detail` or `detail_close/corridor_detail`; `view_control/fullscreen` |
-| `5-remittance-flows-regions.html` / `bilateral-remittances-regions-matrix` | `filter/year`; `view_control/metric`; `detail_open/matrix_cell`; `navigate/corridor_page`; `detail_close/matrix_cell`; `view_control/fullscreen` |
-| `6-remittance-flows-incomes.html` / `bilateral-remittances-income-matrix` | `filter/year`; `view_control/metric`; `detail_open/matrix_cell`; `navigate/corridor_page`; `detail_close/matrix_cell`; `view_control/fullscreen` |
-| `7-migrant-stock-vs-gni.html` / `bilateral-remittances-migrant-stock-gni` | `view_control/metric`; `filter/region`; `filter/country`; `filter/income_group`; `detail_open/country_detail`; `navigate/destination_page`; `detail_close/country_detail`; `view_control/fullscreen` |
-| `8-remittances-source-dependence.html` / `bilateral-remittances-source-dependence` | `view_control/metric`; `filter/income_group`; `filter/country`; `filter/region`; `detail_open/country_detail`; `view_control/corridor_sort`; `detail_close/country_detail`; `view_control/fullscreen` |
-| `9-remittance-source-importance.html` / `bilateral-remittances-source-importance` | `view_control/metric`; `filter/income_group`; `filter/country`; `filter/region`; `detail_open/country_detail`; `view_control/corridor_sort`; `detail_open/metric_definition`; `detail_close/metric_definition`; `detail_close/country_detail`; `view_control/fullscreen` |
-| `10-remittances-vs-oda-fdi.html` / `bilateral-remittances-oda-fdi` | `filter/income_group`; `filter/country`; `view_control/country_role`; `view_control/comparison_mode`; `view_control/ranking_metric`; `navigate/previous_page`; `navigate/next_page`; `view_control/fullscreen` |
-| `11-total-remittances-vs-gni.html` / `bilateral-remittances-total-gni` | `filter/income_group`; `filter/country`; `filter/region`; `view_control/fullscreen` |
-| `12-remittance-corridors-vs-gni.html` / `bilateral-remittances-corridors-gni` | `view_control/country_role`; `filter/country`; `filter/corridor_limit`; `filter/region`; `navigate/previous_page`; `navigate/next_page`; `detail_close/corridor_detail`; `view_control/fullscreen` |
+| `1-total-remittance-flows.html` / `bilateral-remittances-total-flows` | `filter/income_group`; `filter/country`; `filter/region`; `view_control/fullscreen` |
+| `2-remittances-map.html` / `bilateral-remittances-map` | `view_control/flow_direction`; `filter/year`; `view_control/map_scope`; `filter/country`; `detail_open/country_detail`; `detail_open/corridor_detail`; matching `detail_close/country_detail` or `detail_close/corridor_detail`; `view_control/fullscreen` |
+| `3-remittance-flows-regions.html` / `bilateral-remittances-regions-matrix` | `filter/year`; `view_control/metric`; `detail_open/matrix_cell`; `navigate/corridor_page`; `detail_close/matrix_cell`; `view_control/fullscreen` |
+| `4-remittance-flows-incomes.html` / `bilateral-remittances-income-matrix` | `filter/year`; `view_control/metric`; `detail_open/matrix_cell`; `navigate/corridor_page`; `detail_close/matrix_cell`; `view_control/fullscreen` |
+| `5-migrant-stock-vs-gni.html` / `bilateral-remittances-migrant-stock-gni` | `view_control/metric`; `filter/region`; `filter/country`; `filter/income_group`; `detail_open/country_detail`; `navigate/destination_page`; `detail_close/country_detail`; `view_control/fullscreen` |
+| `6-remittances-source-dependence.html` / `bilateral-remittances-source-dependence` | `view_control/metric`; `filter/income_group`; `filter/country`; `filter/region`; `detail_open/country_detail`; `view_control/corridor_sort`; `detail_close/country_detail`; `view_control/fullscreen` |
+| `7-remittance-source-importance.html` / `bilateral-remittances-source-importance` | `view_control/metric`; `filter/income_group`; `filter/country`; `filter/region`; `detail_open/country_detail`; `view_control/corridor_sort`; `detail_open/metric_definition`; `detail_close/metric_definition`; `detail_close/country_detail`; `view_control/fullscreen` |
+| `8-remittances-vs-oda-fdi.html` / `bilateral-remittances-oda-fdi` | `filter/income_group`; `filter/country`; `view_control/country_role`; `view_control/comparison_mode`; `view_control/ranking_metric`; `navigate/previous_page`; `navigate/next_page`; `view_control/fullscreen` |
+| `9-total-remittances-vs-gni.html` / `bilateral-remittances-total-gni` | `filter/income_group`; `filter/country`; `filter/region`; `view_control/fullscreen` |
+| `10-remittance-corridors-vs-gni.html` / `bilateral-remittances-corridors-gni` | `view_control/country_role`; `filter/country`; `filter/corridor_limit`; `filter/region`; `navigate/previous_page`; `navigate/next_page`; `detail_close/corridor_detail`; `view_control/fullscreen` |
+| `11-data-coverage-gaps.html` / `bilateral-remittances-data-coverage` | `filter/year`; `view_control/coverage_view`; `filter/corridor_limit`; `filter/country`; `filter/region`; `detail_open/country_detail`; `detail_open/corridor_detail`; `detail_close/country_detail`; `detail_close/corridor_detail`; `view_control/fullscreen` |
+| `12-model-v-wb.html` / `bilateral-remittances-model-v-world-bank` | `filter/income_group`; `filter/country`; `filter/year`; `view_control/fullscreen` |
+
+> The figures were renumbered to the note's running order in September 2026. The
+> analytics slug in the second column is the identifier events are keyed on and
+> did not change, so event history is continuous across the rename.
 
 `action_value` is populated from the selected control value, its relevant `data-*` value, its accessible label, or its displayed text. It is omitted when no meaningful value exists.
 

@@ -272,15 +272,17 @@ body { font-size: var(--body-size); }
 .kpi::before,
 .descriptor-tab::before { content: none; display: none; }
 
+/* Sentence case, not small caps. The first pass set these uppercase with 0.07em
+ * tracking, which shouts at the reader for a label whose whole job is to stay
+ * out of the number's way. Quiet weight and colour do the separating instead. */
 .kpi-title,
 .descriptor-title {
   margin: 0 0 2px;
   color: var(--cgd-dark-gray);
-  font-size: var(--fs-floor);
+  font-size: var(--note-size);
   font-weight: 600;
-  line-height: 1.1;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  line-height: 1.15;
+  letter-spacing: 0;
 }
 
 .kpi-value,
@@ -325,7 +327,7 @@ body { font-size: var(--body-size); }
   .kpi-value,
   .descriptor-line { font-size: 13px; gap: 4px; }
   .kpi-title,
-  .descriptor-title { letter-spacing: 0.05em; }
+  .descriptor-title { font-size: var(--fs-min); }
 }
 
 /* ------------------------------------------------------------------- notes */

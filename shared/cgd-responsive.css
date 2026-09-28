@@ -97,6 +97,20 @@ select,
   font-size: var(--cgd-body-size) !important;
 }
 
+/* …but 16px is a defence against one specific thing — iOS zooming the page when
+ * a text field is focused — and that cannot happen with a mouse. On a fine
+ * pointer the rule had no purpose and one visible cost: a combobox input sat at
+ * 16px next to a native select at 14px in the same control bank, so figure 1's
+ * "Recipient" box read noticeably larger than "Countries shown" beside it.
+ * Coarse pointers keep the floor; `qa/audit.py` emulates touch at the phone
+ * widths so the floor is still tested rather than merely asserted. */
+@media (pointer: fine) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"]),
+  textarea {
+    font-size: var(--cgd-body-size) !important;
+  }
+}
+
 /* One control height for the whole set.
  *
  * This block used to say `min-height: var(--cgd-control-min); height: auto`,
