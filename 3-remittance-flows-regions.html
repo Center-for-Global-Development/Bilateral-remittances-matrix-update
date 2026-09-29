@@ -55,6 +55,7 @@ body{font-size:var(--body-size)}
  * over the columns it belongs to. */
 .corner{font-size:var(--fs-min);font-weight:700;line-height:1.14;letter-spacing:-.005em}
 .axis-banner{display:flex;align-items:flex-end;justify-content:center;padding:0 6px 3px;color:var(--cgd-dark-gray);font-size:var(--fs-min);font-weight:600;line-height:1.14}
+.corner .corner-axis-label{display:block;color:var(--cgd-dark-gray);font-size:var(--fs-min);font-weight:600;line-height:1.14;letter-spacing:normal}
 .axis-spacer{position:sticky;left:0;z-index:4;background:#fff}
 .cell,.total-cell,.grand-cell{min-height:60px;border:1px solid rgba(26,39,42,.10);border-radius:9px;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px}
 .cell{background:var(--cell-bg);color:var(--cell-fg,var(--cgd-teal-black));cursor:pointer;transition:transform .08s ease,box-shadow .08s ease,border-color .08s ease}
@@ -374,7 +375,7 @@ function render() {
   parts.push(`<div class="axis-spacer" aria-hidden="true"></div>`);
   parts.push(`<div class="axis-banner" style="grid-column:span ${groups.length}">Source region</div>`);
   parts.push(`<div class="axis-spacer" aria-hidden="true"></div>`);
-  parts.push(`<div class="corner"><span class="header-label">Recipient region</span></div>`);
+  parts.push(`<div class="corner"><span class="corner-axis-label">Recipient region</span></div>`);
 
   groups.forEach(g => parts.push(`<div class="col-header"><span class="header-label">${escapeHtml(g.label)}</span></div>`));
   parts.push(`<div class="total-header"><span class="total-label">Total</span></div>`);
