@@ -120,8 +120,9 @@ The map (figure 2) has a second file, `data/2-remittances-map-details.js`, holdi
 per-corridor statistics its popups need. It is *not* loaded up front — see "The
 map" below.
 
-The data files are generated. Do not hand-edit them; regenerate and re-run
-`qa/audit.py`. Each carries a header naming its byte count and sha256.
+The data files are generated. Do not hand-edit them; regenerate them with the
+scripts in [`build/`](build/README.md) and re-run `qa/audit.py`. Each carries a
+header naming its byte count and sha256.
 
 **Why `<script src>` and not `fetch` of a `.json`.** `fetch` from a `file://`
 origin is blocked by CORS, and this repository supports opening a figure straight
@@ -179,6 +180,12 @@ Measured on the throttled phone profile: **critical path 5.38MB → 2.12MB
 (1,134KB → 516KB gzipped), transfer before the map appears 1,120KB → 515KB, time
 to ready 13.0s → 9.9s.** No visual change, and all 108 render fingerprints stayed
 identical.
+
+> These measurements predate the September 2026 model update. The v2 matrix
+> allocates more corridors, so the map now carries 10,784 corridor pairs rather
+> than 8,664: `data/2-remittances-map.js` is 1.22MB (189KB gzipped) and
+> `data/2-remittances-map-details.js` 4.06MB (731KB gzipped). The split and the
+> deferred injection work exactly as described; only the byte counts moved.
 
 What is left is CPU rather than network: evaluating d3 (280KB), the geometry
 (761KB) and the map data (993KB), then fitting the projection (286 ms) and

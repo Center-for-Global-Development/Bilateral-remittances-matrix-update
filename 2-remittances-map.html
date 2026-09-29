@@ -171,12 +171,12 @@ body { font-size: var(--body-size); }
   <div class="tooltip" id="tooltip" hidden></div>
   <div class="popup-backdrop" id="popup" role="dialog" aria-modal="true" aria-labelledby="popupTitle"><div class="popup-card"><div class="popup-top"><div><h3 class="popup-title" id="popupTitle"></h3><p class="popup-sub" id="popupSub"></p></div><button type="button" class="popup-close" id="popupClose" aria-label="Close popup">×</button></div><div id="popupBody"></div></div></div>
 </div>
-<script src="data/2-remittances-map.js?v=20260928"></script>
+<script src="data/2-remittances-map.js?v=20260929"></script>
 <script>
 (function() {
   const DATA = JSON.parse(CGD_VIZ_DATA);
   /*
-    Per-corridor detail statistics are 2.78MB and are needed only by the popups,
+    Per-corridor detail statistics are about 4MB and are needed only by the popups,
     so they are not in the first load. This injects them once, after the map has
     drawn, and the click paths go through withDetails() so a very early click
     still gets real numbers rather than zeros. A <script> injection rather than
@@ -191,7 +191,7 @@ body { font-size: var(--body-size); }
     detailsState = 'loading';
     detailsPromise = new Promise(resolve => {
       const el = document.createElement('script');
-      el.src = 'data/2-remittances-map-details.js?v=20260928';
+      el.src = 'data/2-remittances-map-details.js?v=20260929';
       el.onload = () => {
         try { DATA.flowStats = JSON.parse(CGD_VIZ_DETAILS); } catch (e) { /* keep {} */ }
         detailsState = 'ready';
@@ -279,8 +279,8 @@ body { font-size: var(--body-size); }
   /*
     A corridor's share of its recipient's total, for values ALREADY expressed as
     a percentage (flowStats.p is v / rt * 100, not a fraction — do not multiply
-    by 100 as pct() does). Those shares run from 0.000008% to 97.8%, so a fixed
-    one decimal place printed 43% of corridor-years as "0.0%". Decimals follow
+    by 100 as pct() does). Those shares run from 0.000009% to 98.2%, so a fixed
+    one decimal place would print 46% of corridor-years as "0.0%". Decimals follow
     the magnitude, giving roughly two significant figures throughout, and a
     share under a thousandth of a percent is shown as a bound rather than as a
     rounded-away zero.
@@ -960,7 +960,7 @@ body { font-size: var(--body-size); }
     // Fetch the popup statistics once the figure has fully settled, so a click
     // a moment later is instant.
     //
-    // This waits for cgd:ready rather than firing straight away: parsing 3.3MB
+    // This waits for cgd:ready rather than firing straight away: parsing ~4MB
     // of statistics blocks the main thread, and an idle callback can land before
     // the shared embed script has finished measuring and reported its height —
     // which pushed time-to-ready out by a second even though the map itself had
