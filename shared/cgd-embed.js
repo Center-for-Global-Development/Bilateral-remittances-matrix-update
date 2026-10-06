@@ -114,7 +114,7 @@
   }
 
   const pageRules = {
-    '1-data-coverage-gaps.html': [
+    'bilateral-remittances-data-coverage': [
       ['#yearToggle button', 'filter', 'year'],
       ['#viewToggle button', 'view_control', 'coverage_view'],
       ['#limitSelect', 'filter', 'corridor_limit'],
@@ -125,17 +125,17 @@
       ['#popupClose', 'detail_close', 'country_detail'],
       ['#corridorPopupClose', 'detail_close', 'corridor_detail']
     ],
-    '2-model-v-wb.html': [
+    'bilateral-remittances-model-v-world-bank': [
       ['#incomeSelect .combo__option', 'filter', 'income_group'],
       ['#countrySelect .combo__option', 'filter', 'country'],
       ['#year2021, #year2024', 'filter', 'year']
     ],
-    '3-total-remittance-flows.html': [
+    'bilateral-remittances-total-flows': [
       ['#incomeSelect', 'filter', 'income_group'],
       ['#countrySelect .select-option', 'filter', 'country'],
       ['#regionLegend button, #regionLegend [role="button"]', 'filter', 'region']
     ],
-    '4-remittances-map.html': [
+    'bilateral-remittances-map': [
       ['#directionToggle button', 'view_control', 'flow_direction'],
       ['#yearToggle button', 'filter', 'year'],
       ['#scopeToggle button', 'view_control', 'map_scope'],
@@ -144,21 +144,21 @@
       ['#mapSvg .flow', 'detail_open', 'corridor_detail'],
       ['#popupClose', 'detail_close', 'active_detail']
     ],
-    '5-remittance-flows-regions.html': [
+    'bilateral-remittances-regions-matrix': [
       ['#yearToggle button', 'filter', 'year'],
       ['#metricToggle button', 'view_control', 'metric'],
       ['#heatGrid button, #heatGrid [role="button"]', 'detail_open', 'matrix_cell'],
       ['[data-popup-page]', 'navigate', 'corridor_page'],
       ['#popupClose', 'detail_close', 'matrix_cell']
     ],
-    '6-remittance-flows-incomes.html': [
+    'bilateral-remittances-income-matrix': [
       ['#yearToggle button', 'filter', 'year'],
       ['#metricToggle button', 'view_control', 'metric'],
       ['#heatGrid button, #heatGrid [role="button"]', 'detail_open', 'matrix_cell'],
       ['[data-popup-page]', 'navigate', 'corridor_page'],
       ['#popupClose', 'detail_close', 'matrix_cell']
     ],
-    '7-migrant-stock-vs-gni.html': [
+    'bilateral-remittances-migrant-stock-gni': [
       ['#metricToggle button', 'view_control', 'metric'],
       ['#regionSelect', 'filter', 'region'],
       ['#countrySelect .select-option', 'filter', 'country'],
@@ -167,7 +167,7 @@
       ['[data-popup-page]', 'navigate', 'destination_page'],
       ['#popupClose', 'detail_close', 'country_detail']
     ],
-    '8-remittances-source-dependence.html': [
+    'bilateral-remittances-source-dependence': [
       ['#metricToggle button', 'view_control', 'metric'],
       ['#incomeSelect', 'filter', 'income_group'],
       ['#countrySelect .select-option', 'filter', 'country'],
@@ -176,7 +176,7 @@
       ['#corridorSort button', 'view_control', 'corridor_sort'],
       ['#popupClose', 'detail_close', 'country_detail']
     ],
-    '9-remittance-source-importance.html': [
+    'bilateral-remittances-source-importance': [
       ['#metricToggle button', 'view_control', 'metric'],
       ['#incomeSelect', 'filter', 'income_group'],
       ['#countrySelect .select-option', 'filter', 'country'],
@@ -187,7 +187,7 @@
       ['#metricInfoClose', 'detail_close', 'metric_definition'],
       ['#popupClose', 'detail_close', 'country_detail']
     ],
-    '10-remittances-vs-oda-fdi.html': [
+    'bilateral-remittances-oda-fdi': [
       ['#incomeFilter', 'filter', 'income_group'],
       ['#countryOptions .country-option', 'filter', 'country'],
       ['#roleToggle button', 'view_control', 'country_role'],
@@ -196,12 +196,12 @@
       ['#prevPage', 'navigate', 'previous_page'],
       ['#nextPage', 'navigate', 'next_page']
     ],
-    '11-total-remittances-vs-gni.html': [
+    'bilateral-remittances-total-gni': [
       ['#incomeSelect', 'filter', 'income_group'],
       ['#countrySelect .select-option', 'filter', 'country'],
       ['#regionLegend button, #regionLegend [role="button"]', 'filter', 'region']
     ],
-    '12-remittance-corridors-vs-gni.html': [
+    'bilateral-remittances-corridors-gni': [
       ['#roleToggle button', 'view_control', 'country_role'],
       ['#countrySelect .select-option', 'filter', 'country'],
       ['#limitSelect', 'filter', 'corridor_limit'],
@@ -212,8 +212,11 @@
     ]
   };
 
-  const pageName = decodeURIComponent(location.pathname.split('/').pop() || '');
-  const rules = pageRules[pageName] || [];
+  // Keyed on the analytics slug, not the filename. The rules were keyed on
+  // filenames until the September 2026 renumbering renamed every figure and
+  // silently orphaned all of them; the slug is the identifier that is promised
+  // not to change, so a rename can no longer disconnect a figure's tracking.
+  const rules = (pageRules[interactiveName] || []).slice();
   rules.push(['#fullscreenBtn', 'view_control', 'fullscreen']);
 
   function matchingRule(target) {
@@ -224,19 +227,24 @@
     return null;
   }
 
+  // Capture phase, so the rule is matched before the figure's own handler runs.
+  // Several figures re-render the control they were clicked from — the region
+  // legends rebuild with innerHTML, the scatters redraw their points — so by
+  // the time a bubbling event reached document the target was detached,
+  // closest() found nothing, and the engagement was silently dropped.
   document.addEventListener('click', function (event) {
     const rule = matchingRule(event.target);
     if (rule && !/^(SELECT|INPUT)$/.test(rule.matched.tagName)) {
       trackAction(rule.actionType, rule.actionLabel, rule.matched);
     }
-  });
+  }, true);
 
   document.addEventListener('change', function (event) {
     const rule = matchingRule(event.target);
     if (rule && /^(SELECT|INPUT)$/.test(rule.matched.tagName)) {
       trackAction(rule.actionType, rule.actionLabel, rule.matched);
     }
-  });
+  }, true);
 
   window.CGDTracking = Object.freeze({
     engagement: function (actionType, actionLabel, actionValue) {

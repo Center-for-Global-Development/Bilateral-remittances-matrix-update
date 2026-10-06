@@ -257,7 +257,8 @@ body { font-size: var(--body-size); }
 }
 
 </style>
-  <link rel="stylesheet" href="shared/cgd-figure.css?v=20260928">
+  <link rel="stylesheet" href="https://use.typekit.net/ymp6ujv.css">
+  <link rel="stylesheet" href="shared/cgd-figure.css?v=20261006">
   <link rel="stylesheet" href="shared/cgd-responsive.css?v=20260928">
 </head>
 <body>
@@ -679,7 +680,7 @@ body { font-size: var(--body-size); }
 
     const xTitle = makeEl('text', { x: margin.left + innerW / 2, y: height - 21, 'text-anchor': 'middle', class: 'axis-title' }, width < 560 ? 'World Bank remittances sent' : 'World Bank remittances sent (current US$)');
     svg.appendChild(xTitle);
-    const yTitle = makeEl('text', { x: 10, y: margin.top + innerH / 2, transform: `rotate(-90, 10, ${margin.top + innerH / 2})`, 'text-anchor': 'middle', class: 'axis-title' }, width < 560 ? 'Modelled remittances sent' : 'Modelled remittances sent (current US$)');
+    const yTitle = makeEl('text', { x: 14, y: margin.top + innerH / 2, transform: `rotate(-90, 14, ${margin.top + innerH / 2})`, 'text-anchor': 'middle', class: 'axis-title' }, width < 560 ? 'Modelled remittances sent' : 'Modelled remittances sent (current US$)');
     svg.appendChild(yTitle);
 
     const pointsG = makeEl('g', {});
@@ -837,6 +838,6 @@ body { font-size: var(--body-size); }
 })();
 window.cgdRendered = true; document.dispatchEvent(new Event('cgd:rendered'));
 </script>
-  <script src="shared/cgd-embed.js?v=20260928"></script>
+  <script src="shared/cgd-embed.js?v=20261006"></script>
 </body>
 </html>
