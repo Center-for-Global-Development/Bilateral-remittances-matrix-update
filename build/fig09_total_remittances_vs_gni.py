@@ -152,12 +152,26 @@ def build(version: str) -> dict:
     return {"CGD_VIZ_DATA": {"summary": summary, "countries": countries}}
 
 
+# Written to data/ but never read by the figure, which plots ratio2021 against ratio2024
+# and has no popup. `components` alone was 97% of the payload. build() still produces
+# all of them, because the v1/v2 diagnostics below read components and sources.
+UNUSED_COUNTRY = ("components", "sources", "largestSource2021", "largestSource2024",
+                  "largestSourceShare2024", "total2021", "gni2021", "gni2024", "changePp",
+                  "gniYear2021", "gniYear2024", "gniLag2021", "gniLag2024", "partialCoverage")
+
+
+def trim(out: dict) -> dict:
+    d = out["CGD_VIZ_DATA"]
+    return {"CGD_VIZ_DATA": {"summary": d["summary"],
+                             "countries": common.drop_fields(d["countries"], UNUSED_COUNTRY)}}
+
+
 if __name__ == "__main__":
     v1 = build("v1")
     common.report("fig09", v1, common.load_existing(FNAME), rtol=1e-9, atol=1e-9)
     v2 = build("v2")
-    common.stage(FNAME, "v1", v1)
-    common.stage(FNAME, "v2", v2)
+    common.stage(FNAME, "v1", trim(v1))
+    common.stage(FNAME, "v2", trim(v2))
     s1, s2 = v1["CGD_VIZ_DATA"]["summary"], v2["CGD_VIZ_DATA"]["summary"]
     for k in s1:
         if k not in ("regions", "incomes"):

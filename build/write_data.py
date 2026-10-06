@@ -7,6 +7,8 @@ that loads each changed file.
     python build/write_data.py v1 --check      # rebuild from v1 and confirm bodies are byte-identical
 
 Serialisation (matches the files previously committed):
+  * Numbers are first rounded to common.SIG_FIGS significant figures, except in
+    the files listed in common.FULL_PRECISION.
   * JSON-string payloads: the payload is compact JSON (separators ",", ":",
     non-ASCII kept) held in a JS string literal escaped with json.dumps
     defaults (ASCII escapes), then handed to JSON.parse by the figure.
@@ -161,6 +163,11 @@ def main() -> int:
                 hp.write_text(INLINE_RE.sub(lambda m: m.group(1) + new_arr + ";\n", h, count=1), encoding="utf8", newline="\n")
                 print(f"[wrote] inline rawData in {html}")
             continue
+        # Numbers go to data/ at common.SIG_FIGS significant figures, except the files in
+        # common.FULL_PRECISION. The inline figure 12 array and figure 8's INCOME_BY_CODE
+        # are not rounded.
+        if fname not in common.FULL_PRECISION:
+            consts = common.round_sig(consts)
         body = body_for(kind, consts)
         old = committed_body(fname)
         if fname.startswith("8-"):

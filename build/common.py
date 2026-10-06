@@ -148,6 +148,63 @@ def report(name: str, rebuilt: dict, committed: dict, rtol=1e-6, atol=1e-6, show
     return len(diffs)
 
 
+# Significant figures kept for numbers written to data/ (write_data.py applies it). The
+# matrix arithmetic carries ~15. Fewer is smaller, but a value the figure itself rounds
+# for display can then round the other way: at 6, about 55 tooltip and popup numbers
+# in figures 5, 7 and 9 changed in their last digit ($73,770 -> $73,771, 1.45% -> 1.46%).
+# At 9 none did, across every tooltip and popup in the set.
+SIG_FIGS = 9
+
+# Files written at full precision. Figure 1's tooltips print dollar values to the unit
+# ($89,375,152,218), which no rounding short of ~12 figures leaves intact.
+FULL_PRECISION = {"1-total-remittance-flows.js"}
+
+
+def round_sig(obj, sig: int = SIG_FIGS):
+    """Round every float in a nested payload to `sig` significant figures.
+
+    A float that rounds to a whole number is written as an int (882.0 -> 882); JSON.parse
+    returns the same number either way. Ints, bools, strings and None are untouched.
+    """
+    if isinstance(obj, float):
+        if obj == 0 or not math.isfinite(obj):
+            return obj
+        r = float(f"{obj:.{sig}g}")
+        return int(r) if r.is_integer() and abs(r) < 2 ** 53 else r
+    if isinstance(obj, dict):
+        return {k: round_sig(v, sig) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [round_sig(v, sig) for v in obj]
+    return obj
+
+
+def drop_fields(rows: list, fields) -> list:
+    """The same records without `fields` (for keys a figure never reads)."""
+    fields = set(fields)
+    return [{k: v for k, v in r.items() if k not in fields} for r in rows]
+
+
+def popup_corridors(rows: list, n: int = 10) -> list:
+    """The corridors a figure 6/7 country popup can show, in their original order.
+
+    The popup sorts a country's corridors by "largest" (share2024, then |changeShare|)
+    or by "change" (|changeShare|, then share2024) and draws the first n, so no other
+    row is ever displayed. Ranking is done on the rounded values the browser will sort,
+    and Python's sort is stable like the browser's, so ties fall out identically.
+    """
+    def num(v):
+        return round_sig(v) if isinstance(v, float) else (v or 0)
+
+    def by_largest(r):
+        return (-num(r["share2024"]), -abs(num(r["changeShare"])))
+
+    def by_change(r):
+        return (-abs(num(r["changeShare"])), -num(r["share2024"]))
+
+    keep = {id(r) for r in sorted(rows, key=by_largest)[:n]} | {id(r) for r in sorted(rows, key=by_change)[:n]}
+    return [r for r in rows if id(r) in keep]
+
+
 def stage(fname: str, version: str, consts: dict) -> Path:
     """Write the rebuilt object(s) for data/<fname> to the staging folder as JSON."""
     d = STAGING / version

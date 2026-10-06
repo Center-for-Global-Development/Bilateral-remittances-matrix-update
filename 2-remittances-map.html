@@ -172,7 +172,7 @@ body { font-size: var(--body-size); }
   <div class="tooltip" id="tooltip" hidden></div>
   <div class="popup-backdrop" id="popup" role="dialog" aria-modal="true" aria-labelledby="popupTitle"><div class="popup-card"><div class="popup-top"><div><h3 class="popup-title" id="popupTitle"></h3><p class="popup-sub" id="popupSub"></p></div><button type="button" class="popup-close" id="popupClose" aria-label="Close popup">×</button></div><div id="popupBody"></div></div></div>
 </div>
-<script src="data/2-remittances-map.js?v=20260929"></script>
+<script src="data/2-remittances-map.js?v=20261006"></script>
 <script>
 (function() {
   const DATA = JSON.parse(CGD_VIZ_DATA);
@@ -192,7 +192,7 @@ body { font-size: var(--body-size); }
     detailsState = 'loading';
     detailsPromise = new Promise(resolve => {
       const el = document.createElement('script');
-      el.src = 'data/2-remittances-map-details.js?v=20260929';
+      el.src = 'data/2-remittances-map-details.js?v=20261006';
       el.onload = () => {
         try { DATA.flowStats = JSON.parse(CGD_VIZ_DETAILS); } catch (e) { /* keep {} */ }
         detailsState = 'ready';
