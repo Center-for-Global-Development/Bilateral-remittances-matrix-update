@@ -79,10 +79,13 @@
 
 * { box-sizing: border-box; }
 
+/* The root and the frame are transparent so the figure takes whatever
+ * background the host page has. Surfaces that must be opaque — fullscreen,
+ * popups, sticky matrix cells — set their own fill. */
 html, body {
   margin: 0;
   padding: 0;
-  background: var(--cgd-white);
+  background: transparent;
   color: var(--cgd-teal-black);
   font-family: var(--font-sans);
 }
@@ -101,7 +104,7 @@ body { font-size: var(--body-size); }
   max-width: var(--figure-max-width);
   margin: 0 auto;
   padding: var(--figure-pad);
-  background: var(--cgd-white);
+  background: transparent;
   color: var(--cgd-teal-black);
 }
 

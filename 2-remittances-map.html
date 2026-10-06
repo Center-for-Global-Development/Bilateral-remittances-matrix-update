@@ -12,10 +12,10 @@
   --ocean: #F4F8FA;
 }
 * { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; background: #fff; color: var(--cgd-teal-black); font-family: var(--font-sans); }
+html, body { margin: 0; padding: 0; background: transparent; color: var(--cgd-teal-black); font-family: var(--font-sans); }
 html { scrollbar-gutter: stable; }
 body { font-size: var(--body-size); }
-.viz-wrapper { width: 100%; max-width: 930px; margin: 0 auto; padding: 13px; background: #fff; color: var(--cgd-teal-black); font-family: var(--font-sans); position: relative; }
+.viz-wrapper { width: 100%; max-width: 930px; margin: 0 auto; padding: 13px; background: transparent; color: var(--cgd-teal-black); font-family: var(--font-sans); position: relative; }
 .header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
 .title-block { min-width: 0; }
 .viz-wrapper h1 { margin: 0; color: var(--cgd-teal); font-size: var(--title-size-desktop); line-height: 1.14; letter-spacing: -0.012em; font-weight: 700; }
@@ -468,6 +468,7 @@ body { font-size: var(--body-size); }
       btn.type = 'button';
       btn.className = 'country-option' + (o.id === selectedId ? ' selected' : '');
       btn.setAttribute('role','option');
+      btn.dataset.id = o.id;
       btn.textContent = o.label;
       btn.addEventListener('click', () => {
         if (state.scope === 'regional') state.region = o.id;

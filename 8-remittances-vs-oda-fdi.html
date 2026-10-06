@@ -7,7 +7,7 @@
 <style>
 
 * { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; background: #fff; color: var(--cgd-teal-black); font-family: var(--font-sans); }
+html, body { margin: 0; padding: 0; background: transparent; color: var(--cgd-teal-black); font-family: var(--font-sans); }
 body { font-size: var(--body-size); }
 #flowExplorer { width: 100%; max-width: 930px; margin: 0 auto; padding: 13px; background: var(--cgd-white); position: relative; }
 .header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
@@ -346,7 +346,7 @@ function renderCountryOptions() {
     .filter(d => !q || d.c.name.toLowerCase().includes(q))
     .slice(0, 260);
   els.countryOptions.innerHTML = matches.length ? matches.map(d => `
-    <button type="button" role="option" class="country-option${d.i === state.countryIdx ? ' selected' : ''}" data-country-idx="${d.i}" aria-selected="${d.i === state.countryIdx}">
+    <button type="button" role="option" class="country-option${d.i === state.countryIdx ? ' selected' : ''}" data-country-idx="${d.i}" data-code="${esc(d.c.code || 'ALL')}" aria-selected="${d.i === state.countryIdx}">
       ${esc(d.c.name)}
     </button>`).join('') : `<div class="empty">No matching countries.</div>`;
   const selected = els.countryOptions.querySelector('.country-option.selected');
