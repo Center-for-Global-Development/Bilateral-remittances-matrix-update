@@ -152,6 +152,25 @@ def build(version: str, legacy_names: bool = False, matrix: pd.DataFrame | None 
     return {"CGD_VIZ_DATA": {"summary": summary, "countries": countries, "corridors": corridors}}
 
 
+# Written to data/ but never read by the figure: per-corridor region / income and the
+# 2021 value and value change, which the popup does not display.
+UNUSED_COUNTRY = ("total2021",)
+UNUSED_CORRIDOR = ("recipientRegion", "recipientIncome", "value2021", "changeValue")
+
+
+def trim(out: dict) -> dict:
+    """The payload as staged: build() output less unused fields, and only the corridors
+    the country popup can show (common.popup_corridors). build() keeps everything, so
+    maxGniShare2024 and the checks above are still computed over every corridor."""
+    d = out["CGD_VIZ_DATA"]
+    return {"CGD_VIZ_DATA": {
+        "summary": d["summary"],
+        "countries": common.drop_fields(d["countries"], UNUSED_COUNTRY),
+        "corridors": {s: common.drop_fields(common.popup_corridors(rows), UNUSED_CORRIDOR)
+                      for s, rows in d["corridors"].items()},
+    }}
+
+
 if __name__ == "__main__":
     committed = common.load_existing(FNAME)
     v1 = build("v1", legacy_names=True)
@@ -159,5 +178,5 @@ if __name__ == "__main__":
     print("  with corrected (UTF-8) names instead:", end=" ")
     common.report("fig07-fixed-names", build("v1"), committed, show=0)
     v2 = build("v2")
-    print(common.stage(FNAME, "v1", v1))
-    print(common.stage(FNAME, "v2", v2))
+    print(common.stage(FNAME, "v1", trim(v1)))
+    print(common.stage(FNAME, "v2", trim(v2)))

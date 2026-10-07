@@ -154,6 +154,14 @@ file cached and the HTML revalidated:
 Bump the `?v=` token on a figure's data file only when that data changes; leave
 it alone for code-only changes, or the caching benefit is lost.
 
+> The table above uses the pre-renumbering figure numbers and predates the
+> October 2026 payload trimming, which did shrink the data: 5.24MB to 2.13MB
+> gzipped across the set, with figure 7 (source importance) 1,315KB → 163KB and
+> figure 9 (total vs GNI) 813KB → 7KB, and nothing a reader sees changed. Unused
+> fields are dropped, figures 6 and 7 carry only the corridors their popup can
+> show, and numbers are written at nine significant figures. See
+> [build/README.md](build/README.md#payload-trimming-october-2026).
+
 ### The map: what was done about its weight, and what is left
 
 The map loaded 5.38MB of script before it could draw. 2.78MB of that — 78% of
@@ -184,8 +192,10 @@ identical.
 > These measurements predate the September 2026 model update. The v2 matrix
 > allocates more corridors, so the map now carries 10,784 corridor pairs rather
 > than 8,664: `data/2-remittances-map.js` is 1.22MB (189KB gzipped) and
-> `data/2-remittances-map-details.js` 4.06MB (731KB gzipped). The split and the
-> deferred injection work exactly as described; only the byte counts moved.
+> `data/2-remittances-map-details.js` 4.06MB (731KB gzipped), trimmed in October
+> 2026 to 2.28MB (549KB gzipped) by dropping four fields the popups never read. The
+> split and the deferred injection work exactly as described; only the byte counts
+> moved.
 
 What is left is CPU rather than network: evaluating d3 (280KB), the geometry
 (761KB) and the map data (993KB), then fitting the projection (286 ms) and

@@ -89,22 +89,35 @@
     }, details || {}));
   }
 
-  function actionValue(target) {
-    const dataKeys = ['year', 'view', 'metric', 'role', 'mode', 'rank', 'sort', 'scope', 'direction', 'value', 'id'];
-    for (const key of dataKeys) {
-      if (target.dataset && target.dataset[key]) return target.dataset[key];
-    }
-    if ('value' in target && target.value) return String(target.value);
-    const label = target.getAttribute && (target.getAttribute('aria-label') || target.textContent);
-    return label ? label.trim().replace(/\s+/g, ' ').slice(0, 120) : undefined;
+  // action_value comes only from what a rule declares, never from visible text
+  // or aria-labels. Those carried live numbers ("China. migrants abroad 12m in
+  // 2024", "… 5.8%. Click to see corridor details") and so produced an unbounded
+  // set of values that GA4 buckets into "(other)". Every value below is drawn
+  // from a fixed set: a toggle's option, an ISO3 code, a region or income
+  // group, or a source>recipient group pair. A rule with no value function
+  // sends none.
+  const attr = name => el => el.getAttribute(name);
+  // A native select's "All …" option reports as ALL, matching the comboboxes,
+  // whatever case its figure stores it in (the ODA/FDI income filter uses "all").
+  const formValue = el => /^all$/i.test(el.value) ? 'ALL' : el.value;
+  // A matrix cell is one of a fixed grid of group pairs.
+  const groupPair = el => el.dataset.sg && el.dataset.rg ? el.dataset.sg + '>' + el.dataset.rg : null;
+  // d3-bound map shapes carry their country on the datum, not in the markup.
+  const mapCountry = el => el.__data__ && el.__data__.properties && el.__data__.properties.meta
+    ? el.__data__.properties.meta.code : null;
+
+  function actionValue(target, valueOf) {
+    if (!valueOf) return undefined;
+    const value = valueOf(target);
+    return value === undefined || value === null || value === '' ? undefined : String(value);
   }
 
-  function trackAction(actionType, actionLabel, target) {
+  function trackAction(actionType, actionLabel, target, valueOf) {
     if (actionType === 'detail_open') activeDetailLabel = actionLabel;
     if (actionType === 'detail_close' && actionLabel === 'active_detail') {
       actionLabel = activeDetailLabel || 'detail';
     }
-    const value = actionValue(target);
+    const value = actionValue(target, valueOf);
     const details = {
       action_type: actionType,
       action_label: actionLabel
@@ -113,130 +126,141 @@
     sendAnalytics('interactive_engagement', details);
   }
 
+  // [selector, action_type, action_label, value function (optional)]
   const pageRules = {
-    '1-data-coverage-gaps.html': [
-      ['#yearToggle button', 'filter', 'year'],
-      ['#viewToggle button', 'view_control', 'coverage_view'],
-      ['#limitSelect', 'filter', 'corridor_limit'],
-      ['#countrySelect .select-option', 'filter', 'country'],
-      ['#regionLegend button, #regionLegend [role="button"]', 'filter', 'region'],
-      ['#recipientChart .bar-col', 'detail_open', 'country_detail'],
-      ['.corridor-action', 'detail_open', 'corridor_detail'],
+    'bilateral-remittances-data-coverage': [
+      ['#yearToggle button', 'filter', 'year', attr('data-year')],
+      ['#viewToggle button', 'view_control', 'coverage_view', attr('data-view')],
+      ['#limitSelect', 'filter', 'corridor_limit', formValue],
+      ['#countrySelect .select-option', 'filter', 'country', attr('data-code')],
+      ['#regionLegend button, #regionLegend [role="button"]', 'filter', 'region', attr('data-region')],
+      ['#recipientChart .bar-col', 'detail_open', 'country_detail', attr('data-code')],
+      ['.corridor-action', 'detail_open', 'corridor_detail', attr('data-status')],
       ['#popupClose', 'detail_close', 'country_detail'],
       ['#corridorPopupClose', 'detail_close', 'corridor_detail']
     ],
-    '2-model-v-wb.html': [
-      ['#incomeSelect .combo__option', 'filter', 'income_group'],
-      ['#countrySelect .combo__option', 'filter', 'country'],
-      ['#year2021, #year2024', 'filter', 'year']
+    'bilateral-remittances-model-v-world-bank': [
+      ['#incomeSelect .combo__option', 'filter', 'income_group', attr('data-value')],
+      ['#countrySelect .combo__option', 'filter', 'country', attr('data-value')],
+      ['#year2021, #year2024', 'filter', 'year', el => el.id.replace('year', '')]
     ],
-    '3-total-remittance-flows.html': [
-      ['#incomeSelect', 'filter', 'income_group'],
-      ['#countrySelect .select-option', 'filter', 'country'],
-      ['#regionLegend button, #regionLegend [role="button"]', 'filter', 'region']
+    'bilateral-remittances-total-flows': [
+      ['#incomeSelect', 'filter', 'income_group', formValue],
+      ['#countrySelect .select-option', 'filter', 'country', attr('data-id')],
+      ['#regionLegend button, #regionLegend [role="button"]', 'filter', 'region', attr('data-region')]
     ],
-    '4-remittances-map.html': [
-      ['#directionToggle button', 'view_control', 'flow_direction'],
-      ['#yearToggle button', 'filter', 'year'],
-      ['#scopeToggle button', 'view_control', 'map_scope'],
-      ['#pickerOptions [role="option"]', 'filter', 'country'],
-      ['#mapSvg .country', 'detail_open', 'country_detail'],
+    'bilateral-remittances-map': [
+      ['#directionToggle button', 'view_control', 'flow_direction', attr('data-direction')],
+      ['#yearToggle button', 'filter', 'year', attr('data-year')],
+      ['#scopeToggle button', 'view_control', 'map_scope', attr('data-scope')],
+      // An ISO3 code in country scope, a region name in regional scope.
+      ['#pickerOptions [role="option"]', 'filter', 'country', attr('data-id')],
+      ['#mapSvg .country', 'detail_open', 'country_detail', mapCountry],
+      // ~10,800 corridors: deliberately no value.
       ['#mapSvg .flow', 'detail_open', 'corridor_detail'],
       ['#popupClose', 'detail_close', 'active_detail']
     ],
-    '5-remittance-flows-regions.html': [
-      ['#yearToggle button', 'filter', 'year'],
-      ['#metricToggle button', 'view_control', 'metric'],
-      ['#heatGrid button, #heatGrid [role="button"]', 'detail_open', 'matrix_cell'],
-      ['[data-popup-page]', 'navigate', 'corridor_page'],
+    'bilateral-remittances-regions-matrix': [
+      ['#yearToggle button', 'filter', 'year', attr('data-year')],
+      ['#metricToggle button', 'view_control', 'metric', attr('data-metric')],
+      ['#heatGrid button, #heatGrid [role="button"]', 'detail_open', 'matrix_cell', groupPair],
+      ['[data-popup-page]', 'navigate', 'corridor_page', attr('data-popup-page')],
       ['#popupClose', 'detail_close', 'matrix_cell']
     ],
-    '6-remittance-flows-incomes.html': [
-      ['#yearToggle button', 'filter', 'year'],
-      ['#metricToggle button', 'view_control', 'metric'],
-      ['#heatGrid button, #heatGrid [role="button"]', 'detail_open', 'matrix_cell'],
-      ['[data-popup-page]', 'navigate', 'corridor_page'],
+    'bilateral-remittances-income-matrix': [
+      ['#yearToggle button', 'filter', 'year', attr('data-year')],
+      ['#metricToggle button', 'view_control', 'metric', attr('data-metric')],
+      ['#heatGrid button, #heatGrid [role="button"]', 'detail_open', 'matrix_cell', groupPair],
+      ['[data-popup-page]', 'navigate', 'corridor_page', attr('data-popup-page')],
       ['#popupClose', 'detail_close', 'matrix_cell']
     ],
-    '7-migrant-stock-vs-gni.html': [
-      ['#metricToggle button', 'view_control', 'metric'],
-      ['#regionSelect', 'filter', 'region'],
-      ['#countrySelect .select-option', 'filter', 'country'],
-      ['#incomeLegend button, #incomeLegend [role="button"]', 'filter', 'income_group'],
-      ['#scatterSvg .point', 'detail_open', 'country_detail'],
-      ['[data-popup-page]', 'navigate', 'destination_page'],
+    'bilateral-remittances-migrant-stock-gni': [
+      ['#metricToggle button', 'view_control', 'metric', attr('data-metric')],
+      ['#regionSelect', 'filter', 'region', formValue],
+      ['#countrySelect .select-option', 'filter', 'country', attr('data-id')],
+      ['#incomeLegend button, #incomeLegend [role="button"]', 'filter', 'income_group', attr('data-income')],
+      ['#scatterSvg .point', 'detail_open', 'country_detail', attr('data-id')],
+      ['[data-popup-page]', 'navigate', 'destination_page', attr('data-popup-page')],
       ['#popupClose', 'detail_close', 'country_detail']
     ],
-    '8-remittances-source-dependence.html': [
-      ['#metricToggle button', 'view_control', 'metric'],
-      ['#incomeSelect', 'filter', 'income_group'],
-      ['#countrySelect .select-option', 'filter', 'country'],
-      ['#regionLegend button, #regionLegend [role="button"]', 'filter', 'region'],
-      ['#scatterSvg .point', 'detail_open', 'country_detail'],
-      ['#corridorSort button', 'view_control', 'corridor_sort'],
+    'bilateral-remittances-source-dependence': [
+      ['#metricToggle button', 'view_control', 'metric', attr('data-metric')],
+      ['#incomeSelect', 'filter', 'income_group', formValue],
+      ['#countrySelect .select-option', 'filter', 'country', attr('data-id')],
+      ['#regionLegend button, #regionLegend [role="button"]', 'filter', 'region', attr('data-region')],
+      ['#scatterSvg .point', 'detail_open', 'country_detail', attr('data-id')],
+      ['#corridorSort button', 'view_control', 'corridor_sort', attr('data-sort')],
       ['#popupClose', 'detail_close', 'country_detail']
     ],
-    '9-remittance-source-importance.html': [
-      ['#metricToggle button', 'view_control', 'metric'],
-      ['#incomeSelect', 'filter', 'income_group'],
-      ['#countrySelect .select-option', 'filter', 'country'],
-      ['#regionLegend button, #regionLegend [role="button"]', 'filter', 'region'],
-      ['#scatterSvg .point', 'detail_open', 'country_detail'],
-      ['#corridorSort button', 'view_control', 'corridor_sort'],
+    'bilateral-remittances-source-importance': [
+      ['#metricToggle button', 'view_control', 'metric', attr('data-metric')],
+      ['#incomeSelect', 'filter', 'income_group', formValue],
+      ['#countrySelect .select-option', 'filter', 'country', attr('data-id')],
+      ['#regionLegend button, #regionLegend [role="button"]', 'filter', 'region', attr('data-region')],
+      ['#scatterSvg .point', 'detail_open', 'country_detail', attr('data-id')],
+      ['#corridorSort button', 'view_control', 'corridor_sort', attr('data-sort')],
       ['.info-btn[data-info="average"]', 'detail_open', 'metric_definition'],
       ['#metricInfoClose', 'detail_close', 'metric_definition'],
       ['#popupClose', 'detail_close', 'country_detail']
     ],
-    '10-remittances-vs-oda-fdi.html': [
-      ['#incomeFilter', 'filter', 'income_group'],
-      ['#countryOptions .country-option', 'filter', 'country'],
-      ['#roleToggle button', 'view_control', 'country_role'],
-      ['#modeToggle button', 'view_control', 'comparison_mode'],
-      ['#rankToggle button', 'view_control', 'ranking_metric'],
+    'bilateral-remittances-oda-fdi': [
+      ['#incomeFilter', 'filter', 'income_group', formValue],
+      ['#countryOptions .country-option', 'filter', 'country', attr('data-code')],
+      ['#roleToggle button', 'view_control', 'country_role', attr('data-role')],
+      ['#modeToggle button', 'view_control', 'comparison_mode', attr('data-mode')],
+      ['#rankToggle button', 'view_control', 'ranking_metric', attr('data-rank')],
       ['#prevPage', 'navigate', 'previous_page'],
       ['#nextPage', 'navigate', 'next_page']
     ],
-    '11-total-remittances-vs-gni.html': [
-      ['#incomeSelect', 'filter', 'income_group'],
-      ['#countrySelect .select-option', 'filter', 'country'],
-      ['#regionLegend button, #regionLegend [role="button"]', 'filter', 'region']
+    'bilateral-remittances-total-gni': [
+      ['#incomeSelect', 'filter', 'income_group', formValue],
+      ['#countrySelect .select-option', 'filter', 'country', attr('data-id')],
+      ['#regionLegend button, #regionLegend [role="button"]', 'filter', 'region', attr('data-region')]
     ],
-    '12-remittance-corridors-vs-gni.html': [
-      ['#roleToggle button', 'view_control', 'country_role'],
-      ['#countrySelect .select-option', 'filter', 'country'],
-      ['#limitSelect', 'filter', 'corridor_limit'],
-      ['#regionFilter button, #regionFilter [role="button"]', 'filter', 'region'],
+    'bilateral-remittances-corridors-gni': [
+      ['#roleToggle button', 'view_control', 'country_role', attr('data-role')],
+      ['#countrySelect .select-option', 'filter', 'country', attr('data-code')],
+      ['#limitSelect', 'filter', 'corridor_limit', formValue],
+      ['#regionFilter button, #regionFilter [role="button"]', 'filter', 'region', attr('data-region')],
       ['#prevPage', 'navigate', 'previous_page'],
       ['#nextPage', 'navigate', 'next_page'],
       ['#popupClose', 'detail_close', 'corridor_detail']
     ]
   };
 
-  const pageName = decodeURIComponent(location.pathname.split('/').pop() || '');
-  const rules = pageRules[pageName] || [];
+  // Keyed on the analytics slug, not the filename. The rules were keyed on
+  // filenames until the September 2026 renumbering renamed every figure and
+  // silently orphaned all of them; the slug is the identifier that is promised
+  // not to change, so a rename can no longer disconnect a figure's tracking.
+  const rules = (pageRules[interactiveName] || []).slice();
   rules.push(['#fullscreenBtn', 'view_control', 'fullscreen']);
 
   function matchingRule(target) {
     for (const rule of rules) {
       const matched = target.closest(rule[0]);
-      if (matched) return { matched, actionType: rule[1], actionLabel: rule[2] };
+      if (matched) return { matched, actionType: rule[1], actionLabel: rule[2], valueOf: rule[3] };
     }
     return null;
   }
 
+  // Capture phase, so the rule is matched before the figure's own handler runs.
+  // Several figures re-render the control they were clicked from — the region
+  // legends rebuild with innerHTML, the scatters redraw their points — so by
+  // the time a bubbling event reached document the target was detached,
+  // closest() found nothing, and the engagement was silently dropped.
   document.addEventListener('click', function (event) {
     const rule = matchingRule(event.target);
     if (rule && !/^(SELECT|INPUT)$/.test(rule.matched.tagName)) {
-      trackAction(rule.actionType, rule.actionLabel, rule.matched);
+      trackAction(rule.actionType, rule.actionLabel, rule.matched, rule.valueOf);
     }
-  });
+  }, true);
 
   document.addEventListener('change', function (event) {
     const rule = matchingRule(event.target);
     if (rule && /^(SELECT|INPUT)$/.test(rule.matched.tagName)) {
-      trackAction(rule.actionType, rule.actionLabel, rule.matched);
+      trackAction(rule.actionType, rule.actionLabel, rule.matched, rule.valueOf);
     }
-  });
+  }, true);
 
   window.CGDTracking = Object.freeze({
     engagement: function (actionType, actionLabel, actionValue) {

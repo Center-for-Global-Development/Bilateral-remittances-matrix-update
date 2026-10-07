@@ -166,14 +166,29 @@ def summary(tag, out):
     print(f"    detail statuses {dict(Counter(e['status'] for e in ent))}")
 
 
+# Per-corridor-year fields the popups never read; summary() above still reports on them.
+UNUSED_DETAIL = ("status", "rt", "gr", "gs")
+
+
+def trim(fname: str, consts: dict) -> dict:
+    """The payload as staged. Only the details file changes."""
+    if fname != FNAME_DETAILS:
+        return consts
+    det = consts["CGD_VIZ_DETAILS"]
+    return {"CGD_VIZ_DETAILS": {
+        k: {**p, "y": {y: {f: v for f, v in e.items() if f not in UNUSED_DETAIL} for y, e in p["y"].items()}}
+        for k, p in det.items()
+    }}
+
+
 if __name__ == "__main__":
     v1 = build("v1")
     n = 0
     for fname, consts in v1.items():
         n += common.report(fname, consts, common.load_existing(fname), rtol=1e-9, atol=0)
-        common.stage(fname, "v1", consts)
+        common.stage(fname, "v1", trim(fname, consts))
     summary("v1", v1)
     v2 = build("v2")
     for fname, consts in v2.items():
-        common.stage(fname, "v2", consts)
+        common.stage(fname, "v2", trim(fname, consts))
     summary("v2", v2)

@@ -99,6 +99,25 @@ def build(version: str, legacy_names: bool = False) -> dict:
     return {"CGD_VIZ_DATA": {"summary": summary, "countries": countries, "corridors": corridors}}
 
 
+# Written to data/ but never read by the figure: the concentration indices it does not
+# plot, and per-corridor region / income it does not display.
+UNUSED_COUNTRY = ("total2021", "hhi2021", "hhi2024", "hhiChange", "eff2021", "eff2024", "effChange")
+UNUSED_CORRIDOR = ("sourceRegion", "sourceIncome")
+
+
+def trim(out: dict) -> dict:
+    """The payload as staged: build() output less unused fields, and only the corridors
+    the country popup can show (common.popup_corridors). build() keeps everything so the
+    checks above still see the full data."""
+    d = out["CGD_VIZ_DATA"]
+    return {"CGD_VIZ_DATA": {
+        "summary": d["summary"],
+        "countries": common.drop_fields(d["countries"], UNUSED_COUNTRY),
+        "corridors": {r: common.drop_fields(common.popup_corridors(rows), UNUSED_CORRIDOR)
+                      for r, rows in d["corridors"].items()},
+    }}
+
+
 if __name__ == "__main__":
     committed = common.load_existing(FNAME)
     v1 = build("v1", legacy_names=True)
@@ -106,5 +125,5 @@ if __name__ == "__main__":
     print("  with corrected (UTF-8) names instead:", end=" ")
     common.report("fig06-fixed-names", build("v1"), committed, show=0)
     v2 = build("v2")
-    print(common.stage(FNAME, "v1", v1))
-    print(common.stage(FNAME, "v2", v2))
+    print(common.stage(FNAME, "v1", trim(v1)))
+    print(common.stage(FNAME, "v2", trim(v2)))

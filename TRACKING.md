@@ -1,62 +1,182 @@
-# CGD interactive analytics manifest
+# Event Tracking: Bilateral remittances matrix update
 
-All 12 visualisations use the CGD iframe analytics contract:
+Tracking implemented per [CGD Interactive Analytics Tracking Standard](https://github.com/Center-for-Global-Development/cgd-interactive-toolkit/blob/main/analytics-tracking-standard.md).
 
-- `interactive_view` is sent once after the child page loads.
-- Meaningful controls send `interactive_engagement`.
-- Production messages are flat objects sent only to `https://www.cgdev.org`.
-- The organisational GitHub Pages preview is an explicit non-production exception: children use the exact referrer origin `https://center-for-global-development.github.io`, and `preview.html` validates and retains events locally without forwarding them to GA4.
-- `interactive_name` is stable, unique, and kebab-case.
-- `action_label` is stable and snake_case.
+Twelve separately embedded figures, each with its own `interactive_name`. All of them share one implementation, `shared/cgd-embed.js`:
 
-The shared implementation is `shared/cgd-embed.js`. Changes to tracked controls, names, or labels must update this manifest in the same commit.
+- `interactive_view` fires once per figure on load.
+- Each figure's slug is set on its `<html>` element as `data-cgd-interactive-name`. The tracking rules are keyed on that slug, not on the filename, so renaming or renumbering a file does not affect tracking.
+- `action_value` comes only from the value each rule declares, never from visible text or `aria-label`s. It is omitted when the rule declares none.
+- Messages are flat objects sent to `https://www.cgdev.org`. The one exception is `preview.html` on the organisational GitHub Pages origin or on localhost, where the children post to the preview page itself, which keeps events in `window.CGDPreviewAnalytics` and never forwards them to GA4.
 
-`shared/cgd-embed.js` also carries the `CGD_READY` signal that `qa/audit.py` waits on, and the scroll-cue behaviour for regions wider than the panel. Neither sends analytics.
+## Shared value sets
 
-## Unchanged by the 2026-09 review pass
+Every `action_value` is drawn from one of these bounded sets, or from the per-control values listed in the tables below.
 
-That pass altered control labels, layout and both shared stylesheets. It did **not** add, remove or rename a tracked control, and `action_value` is unaffected because it is read from each control's `data-*` attribute rather than its visible text. Verified in a listening parent:
-
-| Figure | Control | Visible label | `action_value` |
-|---|---|---|---|
-| 5 | `#metricToggle` | `US$` → `$bn` | `usd` / `pct`, from `data-metric` |
-| 6 | `#metricToggle` | `US$` → `$bn` | `usd` / `pct`, from `data-metric` |
-| 4 | `#scopeToggle` | unchanged | `regional`, from `data-scope` |
-| 12 | `#roleToggle` | unchanged | `source`, from `data-role` |
-
-The same check confirmed `interactive_view` still fires exactly once per figure with the correct `interactive_name`, and that the reported height both grows and shrinks (`667 → 822 → 667` on figure 1's view toggle).
-
-Two elements were removed in that pass; neither was ever tracked: figure 10's instructional subtitle, and figure 1's `No stock record` card, which restated a bar in its own chart.
-
-## Event inventory
-
-| File / `interactive_name` | Tracked engagements |
+| Set | Values |
 |---|---|
-| `1-total-remittance-flows.html` / `bilateral-remittances-total-flows` | `filter/income_group`; `filter/country`; `filter/region`; `view_control/fullscreen` |
-| `2-remittances-map.html` / `bilateral-remittances-map` | `view_control/flow_direction`; `filter/year`; `view_control/map_scope`; `filter/country`; `detail_open/country_detail`; `detail_open/corridor_detail`; matching `detail_close/country_detail` or `detail_close/corridor_detail`; `view_control/fullscreen` |
-| `3-remittance-flows-regions.html` / `bilateral-remittances-regions-matrix` | `filter/year`; `view_control/metric`; `detail_open/matrix_cell`; `navigate/corridor_page`; `detail_close/matrix_cell`; `view_control/fullscreen` |
-| `4-remittance-flows-incomes.html` / `bilateral-remittances-income-matrix` | `filter/year`; `view_control/metric`; `detail_open/matrix_cell`; `navigate/corridor_page`; `detail_close/matrix_cell`; `view_control/fullscreen` |
-| `5-migrant-stock-vs-gni.html` / `bilateral-remittances-migrant-stock-gni` | `view_control/metric`; `filter/region`; `filter/country`; `filter/income_group`; `detail_open/country_detail`; `navigate/destination_page`; `detail_close/country_detail`; `view_control/fullscreen` |
-| `6-remittances-source-dependence.html` / `bilateral-remittances-source-dependence` | `view_control/metric`; `filter/income_group`; `filter/country`; `filter/region`; `detail_open/country_detail`; `view_control/corridor_sort`; `detail_close/country_detail`; `view_control/fullscreen` |
-| `7-remittance-source-importance.html` / `bilateral-remittances-source-importance` | `view_control/metric`; `filter/income_group`; `filter/country`; `filter/region`; `detail_open/country_detail`; `view_control/corridor_sort`; `detail_open/metric_definition`; `detail_close/metric_definition`; `detail_close/country_detail`; `view_control/fullscreen` |
-| `8-remittances-vs-oda-fdi.html` / `bilateral-remittances-oda-fdi` | `filter/income_group`; `filter/country`; `view_control/country_role`; `view_control/comparison_mode`; `view_control/ranking_metric`; `navigate/previous_page`; `navigate/next_page`; `view_control/fullscreen` |
-| `9-total-remittances-vs-gni.html` / `bilateral-remittances-total-gni` | `filter/income_group`; `filter/country`; `filter/region`; `view_control/fullscreen` |
-| `10-remittance-corridors-vs-gni.html` / `bilateral-remittances-corridors-gni` | `view_control/country_role`; `filter/country`; `filter/corridor_limit`; `filter/region`; `navigate/previous_page`; `navigate/next_page`; `detail_close/corridor_detail`; `view_control/fullscreen` |
-| `11-data-coverage-gaps.html` / `bilateral-remittances-data-coverage` | `filter/year`; `view_control/coverage_view`; `filter/corridor_limit`; `filter/country`; `filter/region`; `detail_open/country_detail`; `detail_open/corridor_detail`; `detail_close/country_detail`; `detail_close/corridor_detail`; `view_control/fullscreen` |
-| `12-model-v-wb.html` / `bilateral-remittances-model-v-world-bank` | `filter/income_group`; `filter/country`; `filter/year`; `view_control/fullscreen` |
+| Country | ISO3 code (`AFG`, `IND`, …) or `ALL`, ~230 values |
+| Region | `East Asia & Pacific`, `Europe & Central Asia`, `Latin America & Caribbean`, `Middle East & North Africa`, `North America`, `South Asia`, `Sub-Saharan Africa`, or `ALL` |
+| Income group | `High income`, `Upper middle income`, `Lower middle income`, `Low income`, or `ALL` |
+| Year | `2021`, `2024`; the two matrices also have `change` |
+| Popup page | `prev`, `next` |
 
-> The figures were renumbered to the note's running order in September 2026. The
-> analytics slug in the second column is the identifier events are keyed on and
-> did not change, so event history is continuous across the rename.
+`view_control/fullscreen` appears in every figure, with no value.
 
-`action_value` is populated from the selected control value, its relevant `data-*` value, its accessible label, or its displayed text. It is omitted when no meaningful value exists.
+## Tracked Events
 
-## Deliberately not tracked
+### `bilateral-remittances-total-flows` — `1-total-remittance-flows.html`
 
-- Hover and tooltip display.
-- Pointer movement, scrolling, resizing, and automatic re-rendering.
-- Text typed while searching a country list; only a completed option selection is tracked.
-- Map pan, wheel/pinch zoom, and the map zoom/reset buttons.
-- Passive chart marks that do not open a discrete detail view.
+| `action_type` | `action_label` | `action_value` | Notes |
+|---|---|---|---|
+| `filter` | `income_group` | income group | Native select |
+| `filter` | `country` | country | Combobox option |
+| `filter` | `region` | region | Legend toggle |
+| `view_control` | `fullscreen` | | |
 
-These exclusions avoid inflating engagement with continuous, accidental, or low-signal behaviour.
+### `bilateral-remittances-map` — `2-remittances-map.html`
+
+| `action_type` | `action_label` | `action_value` | Notes |
+|---|---|---|---|
+| `view_control` | `flow_direction` | `inflows`, `outflows` | |
+| `filter` | `year` | year | |
+| `view_control` | `map_scope` | `countries`, `regional` | |
+| `filter` | `country` | country, or region in regional scope | Picker option |
+| `detail_open` | `country_detail` | country | Click on a country shape |
+| `detail_open` | `corridor_detail` | | Click on a flow. No value: ~10,800 corridors |
+| `detail_close` | `country_detail` / `corridor_detail` | | Label matches whichever popup was open |
+| `view_control` | `fullscreen` | | |
+
+### `bilateral-remittances-regions-matrix` — `3-remittance-flows-regions.html`
+
+| `action_type` | `action_label` | `action_value` | Notes |
+|---|---|---|---|
+| `filter` | `year` | year | |
+| `view_control` | `metric` | `usd`, `pct` | |
+| `detail_open` | `matrix_cell` | `<source>><recipient>` region codes, e.g. `EAP>SAS` | 49 pairs of `EAP`, `ECA`, `LAC`, `MENA`, `NAC`, `SAS`, `SSA` |
+| `navigate` | `corridor_page` | popup page | |
+| `detail_close` | `matrix_cell` | | |
+| `view_control` | `fullscreen` | | |
+
+### `bilateral-remittances-income-matrix` — `4-remittance-flows-incomes.html`
+
+| `action_type` | `action_label` | `action_value` | Notes |
+|---|---|---|---|
+| `filter` | `year` | year | |
+| `view_control` | `metric` | `usd`, `pct` | |
+| `detail_open` | `matrix_cell` | `<source>><recipient>` income codes, e.g. `HIC>LIC` | 16 pairs of `HIC`, `UMC`, `LMC`, `LIC` |
+| `navigate` | `corridor_page` | popup page | |
+| `detail_close` | `matrix_cell` | | |
+| `view_control` | `fullscreen` | | |
+
+### `bilateral-remittances-migrant-stock-gni` — `5-migrant-stock-vs-gni.html`
+
+| `action_type` | `action_label` | `action_value` | Notes |
+|---|---|---|---|
+| `view_control` | `metric` | `gni`, `migration` | |
+| `filter` | `region` | region | Native select |
+| `filter` | `country` | country | Combobox option |
+| `filter` | `income_group` | income group | Legend toggle |
+| `detail_open` | `country_detail` | country | Click on a bubble |
+| `navigate` | `destination_page` | popup page | |
+| `detail_close` | `country_detail` | | |
+| `view_control` | `fullscreen` | | |
+
+### `bilateral-remittances-source-dependence` — `6-remittances-source-dependence.html`
+
+| `action_type` | `action_label` | `action_value` | Notes |
+|---|---|---|---|
+| `view_control` | `metric` | `top1`, `top3` | |
+| `filter` | `income_group` | income group | Native select |
+| `filter` | `country` | country | Combobox option |
+| `filter` | `region` | region | Legend toggle |
+| `detail_open` | `country_detail` | country | Click on a point |
+| `view_control` | `corridor_sort` | `largest`, `change` | |
+| `detail_close` | `country_detail` | | |
+| `view_control` | `fullscreen` | | |
+
+### `bilateral-remittances-source-importance` — `7-remittance-source-importance.html`
+
+| `action_type` | `action_label` | `action_value` | Notes |
+|---|---|---|---|
+| `view_control` | `metric` | `avg`, `top` | |
+| `filter` | `income_group` | income group | Native select |
+| `filter` | `country` | country | Combobox option |
+| `filter` | `region` | region | Legend toggle |
+| `detail_open` | `country_detail` | country | Click on a point |
+| `view_control` | `corridor_sort` | `largest`, `change` | |
+| `detail_open` | `metric_definition` | | Formula popup, opened from inside the country popup |
+| `detail_close` | `metric_definition` | | |
+| `detail_close` | `country_detail` | | |
+| `view_control` | `fullscreen` | | |
+
+### `bilateral-remittances-oda-fdi` — `8-remittances-vs-oda-fdi.html`
+
+| `action_type` | `action_label` | `action_value` | Notes |
+|---|---|---|---|
+| `filter` | `income_group` | income group | Native select |
+| `filter` | `country` | country | Listbox option |
+| `view_control` | `country_role` | `recipient`, `source` | |
+| `view_control` | `comparison_mode` | `2021`, `2024`, `change` | |
+| `view_control` | `ranking_metric` | `all`, `rem`, `oda`, `fdi` | Legend toggles |
+| `navigate` | `previous_page` | | |
+| `navigate` | `next_page` | | |
+| `view_control` | `fullscreen` | | |
+
+### `bilateral-remittances-total-gni` — `9-total-remittances-vs-gni.html`
+
+| `action_type` | `action_label` | `action_value` | Notes |
+|---|---|---|---|
+| `filter` | `income_group` | income group | Native select |
+| `filter` | `country` | country | Combobox option |
+| `filter` | `region` | region | Legend toggle |
+| `view_control` | `fullscreen` | | |
+
+### `bilateral-remittances-corridors-gni` — `10-remittance-corridors-vs-gni.html`
+
+| `action_type` | `action_label` | `action_value` | Notes |
+|---|---|---|---|
+| `view_control` | `country_role` | `recipient`, `source` | |
+| `filter` | `country` | country | Combobox option |
+| `filter` | `corridor_limit` | `15`, `25`, `40`, `80` | |
+| `filter` | `region` | region | Region pill toggle |
+| `navigate` | `previous_page` | | |
+| `navigate` | `next_page` | | |
+| `detail_close` | `corridor_detail` | | |
+| `view_control` | `fullscreen` | | |
+
+### `bilateral-remittances-data-coverage` — `11-data-coverage-gaps.html`
+
+| `action_type` | `action_label` | `action_value` | Notes |
+|---|---|---|---|
+| `filter` | `year` | year | |
+| `view_control` | `coverage_view` | `global`, `countries` | |
+| `filter` | `corridor_limit` | `20`, `40`, `80`, `ALL` | |
+| `filter` | `country` | country | Combobox option |
+| `filter` | `region` | region | Legend toggle |
+| `detail_open` | `country_detail` | country | Click on a bar |
+| `detail_open` | `corridor_detail` | gap status: `no_stock_record_zero_allocation`, `recipient_unallocated_no_positive_usable_score`, `source_reported_zero_stock`, `unscored_missing_recipient_and_source_income`, `unscored_missing_recipient_income` | "See missing corridors" |
+| `detail_close` | `country_detail` | | |
+| `detail_close` | `corridor_detail` | | |
+| `view_control` | `fullscreen` | | |
+
+### `bilateral-remittances-model-v-world-bank` — `12-model-v-wb.html`
+
+| `action_type` | `action_label` | `action_value` | Notes |
+|---|---|---|---|
+| `filter` | `income_group` | income group | Combobox option |
+| `filter` | `country` | country | Combobox option |
+| `filter` | `year` | year | |
+| `view_control` | `fullscreen` | | |
+
+## Not Tracked
+
+- Hover and tooltip display: high volume, low signal.
+- Map pan, wheel/pinch zoom, and the map zoom/reset buttons: continuous gestures.
+- Text typed into a country search box. Only a completed option selection is tracked.
+- Pointer movement, scrolling, resizing and automatic re-rendering.
+- Chart marks that do not open a discrete detail view.
+
+## Maintenance
+
+Any change that adds, removes or renames a tracked control, or changes the values it sends, must update this file in the same commit.

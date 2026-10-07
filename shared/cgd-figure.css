@@ -41,7 +41,10 @@
   --border: #D9E1E4;
 
   /* Type */
-  --font-sans: "Sofia Pro", "Inter", "Helvetica Neue", Arial, sans-serif;
+  /* Sofia Pro comes from CGD's Adobe Fonts kit (use.typekit.net/ymp6ujv.css,
+   * linked in each figure's <head>), which registers it as "sofia-pro". The
+   * spaced name is kept second for machines with the desktop font installed. */
+  --font-sans: "sofia-pro", "Sofia Pro", "Inter", "Helvetica Neue", Arial, sans-serif;
   --title-size-desktop: 24px;
   --title-size-tablet: 22px;
   --title-size-mobile: 20px;
@@ -76,10 +79,13 @@
 
 * { box-sizing: border-box; }
 
+/* The root and the frame are transparent so the figure takes whatever
+ * background the host page has. Surfaces that must be opaque — fullscreen,
+ * popups, sticky matrix cells — set their own fill. */
 html, body {
   margin: 0;
   padding: 0;
-  background: var(--cgd-white);
+  background: transparent;
   color: var(--cgd-teal-black);
   font-family: var(--font-sans);
 }
@@ -98,7 +104,7 @@ body { font-size: var(--body-size); }
   max-width: var(--figure-max-width);
   margin: 0 auto;
   padding: var(--figure-pad);
-  background: var(--cgd-white);
+  background: transparent;
   color: var(--cgd-teal-black);
 }
 

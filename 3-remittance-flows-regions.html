@@ -12,10 +12,10 @@
   --cell-mid:#BFDEE0;
 }
 *{box-sizing:border-box}
-html,body{margin:0;padding:0;background:#fff;color:var(--cgd-teal-black);font-family:var(--font-sans)}
+html,body{margin:0;padding:0;background:transparent;color:var(--cgd-teal-black);font-family:var(--font-sans)}
 html{scrollbar-gutter:stable}
 body{font-size:var(--body-size)}
-.viz-wrapper{width:100%;max-width:1040px;margin:0 auto;padding:13px;background:var(--cgd-white);color:var(--cgd-teal-black);position:relative}
+.viz-wrapper{width:100%;max-width:1040px;margin:0 auto;padding:13px;background: transparent;color:var(--cgd-teal-black);position:relative}
 .header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
 .title-block{min-width:0}
 .viz-wrapper h1{margin:0;color:var(--matrix-accent);font-size:var(--title-size-desktop);line-height:1.14;letter-spacing:-.012em;font-weight:700}
@@ -126,7 +126,8 @@ body{font-size:var(--body-size)}
   .header-label,.row-label,.total-label{font-size:var(--fs-min)}
 }
   </style>
-  <link rel="stylesheet" href="shared/cgd-figure.css?v=20260928">
+  <link rel="stylesheet" href="https://use.typekit.net/ymp6ujv.css">
+  <link rel="stylesheet" href="shared/cgd-figure.css?v=20261006">
   <link rel="stylesheet" href="shared/cgd-responsive.css?v=20260928">
   <style>
     .grid-scroll { position: relative; isolation: isolate; padding-left: 0 !important; }
@@ -200,7 +201,7 @@ body{font-size:var(--body-size)}
     </div>
   </div>
 
-  <script src="data/3-remittance-flows-regions.js?v=20260929"></script>
+  <script src="data/3-remittance-flows-regions.js?v=20261006"></script>
   <script>
 
 const state = {year:'2024',metric:'usd'};
@@ -491,6 +492,6 @@ syncFullscreenButton();
 render();
   window.cgdRendered = true; document.dispatchEvent(new Event('cgd:rendered'));
 </script>
-  <script src="shared/cgd-embed.js?v=20260928"></script>
+  <script src="shared/cgd-embed.js?v=20261006"></script>
 </body>
 </html>

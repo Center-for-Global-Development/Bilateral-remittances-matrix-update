@@ -6,8 +6,8 @@
 <title>Access to high-earning emigration opportunities varies</title>
 <style>
 
-*{box-sizing:border-box} html,body{margin:0;padding:0;background:#fff;color:var(--cgd-teal-black);font-family:var(--font-sans)} html{scrollbar-gutter:stable} body{font-size:var(--body-size)}
-.viz-wrapper{width:100%;max-width:930px;margin:0 auto;padding:13px;background:#fff;position:relative;color:var(--cgd-teal-black)}
+*{box-sizing:border-box} html,body{margin:0;padding:0;background:transparent;color:var(--cgd-teal-black);font-family:var(--font-sans)} html{scrollbar-gutter:stable} body{font-size:var(--body-size)}
+.viz-wrapper{width:100%;max-width:930px;margin:0 auto;padding:13px;background: transparent;position:relative;color:var(--cgd-teal-black)}
 .header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}.title-block{min-width:0}.viz-wrapper h1{margin:0;color:var(--cgd-teal);font-size:var(--title-size-desktop);line-height:1.14;letter-spacing:-.012em;font-weight:700}
 .fullscreen-btn{flex:0 0 auto;width:30px;height:30px;border:1px solid var(--border);background:#fff;color:var(--cgd-teal);border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}.fullscreen-btn:hover,.fullscreen-btn:focus{border-color:var(--cgd-teal-gray);outline:none;box-shadow:0 0 0 3px rgba(11,76,91,.10)}.fullscreen-btn .icon-compress{display:none}.viz-wrapper:fullscreen .fullscreen-btn .icon-expand{display:none}.viz-wrapper:fullscreen .fullscreen-btn .icon-compress{display:block}.viz-wrapper:fullscreen{max-width:none;width:100%;min-height:100vh;overflow-y:auto;padding:22px;background:#fff}.viz-wrapper:fullscreen h1{font-size:30px}.viz-wrapper:fullscreen .tooltip,.viz-wrapper:fullscreen .select-menu,.viz-wrapper:fullscreen .popup-backdrop{position:fixed;z-index:2147483647}
 .controls{display:flex;flex-wrap:nowrap;gap:8px;align-items:flex-start;padding:9px;border:1px solid var(--border);border-radius:12px;background:var(--cgd-offwhite);margin-bottom:8px;overflow:visible}.control-group{min-width:0;position:relative}.control-label,.control-group label{display:block;color:var(--cgd-teal);font-size:var(--label-size);line-height:1.05;font-weight:650;margin-bottom:4px}.metric-control{flex:0 1 235px}.region-control{flex:0 1 210px}.country-control{flex:1 1 280px}
@@ -22,7 +22,8 @@
 @media (max-width: 720px){.controls{flex-wrap:wrap}.metric-control,.region-control,.country-control{flex:1 1 100%}.svg-holder{height:420px}.metric-grid{grid-template-columns:1fr}.popup{padding:12px}.dest-row{grid-template-columns:1fr}.dest-mini{justify-content:start;text-align:left;margin-top:5px}}
 @media (max-width: 520px){.viz-wrapper{padding:11px}.viz-wrapper h1{font-size:var(--title-size-mobile)}.chart-shell{padding:8px}.svg-holder{height:400px}.axis text{font-size:var(--axis-size)}.notes{font-size:10.4px}}
 </style>
-  <link rel="stylesheet" href="shared/cgd-figure.css?v=20260928">
+  <link rel="stylesheet" href="https://use.typekit.net/ymp6ujv.css">
+  <link rel="stylesheet" href="shared/cgd-figure.css?v=20261006">
   <link rel="stylesheet" href="shared/cgd-responsive.css?v=20260928">
   <style>
     .popup-pager { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px; }
@@ -96,7 +97,7 @@
   </div>
 </div>
 
-<script src="data/5-migrant-stock-vs-gni.js?v=20260929"></script>
+<script src="data/5-migrant-stock-vs-gni.js?v=20261006"></script>
 <script>
 const data = JSON.parse(CGD_VIZ_DATA);
 const countries = data.countries;
@@ -303,7 +304,7 @@ function renderScatter(){
     const labelMetric = state.metric === 'migration' ? `migrants abroad ${fmtMigrants(d.migrants2024)} in 2024` : `average destination GNI ${fmtMoney(d.avgGni2024)} in 2024`;
     const isLowIncome = d.income === 'Low income';
     const className = `point${isLowIncome?' low-income':''}${selectedThis?' selected':''}${mutedBySelection||mutedByIncome?' context-muted':''}`;
-    const c = create('circle', { cx:x, cy:y, r:r, fill: incomeColours[d.income] || '#DFE0E2', class:className, tabindex:'0', role:'button', 'aria-label':`${d.name}. ${labelMetric}. Click for details.` });
+    const c = create('circle', { cx:x, cy:y, r:r, fill: incomeColours[d.income] || '#DFE0E2', class:className, 'data-id':d.id, tabindex:'0', role:'button', 'aria-label':`${d.name}. ${labelMetric}. Click for details.` });
     c.addEventListener('mouseenter', e => showTooltip(e, d)); c.addEventListener('mousemove', e => showTooltip(e, d)); c.addEventListener('mouseleave', hideTooltip);
     c.addEventListener('click', e => { e.stopPropagation(); state.country=d.id; updateCountryInput(); render(); openCountryPopup(d); });
     c.addEventListener('keydown', e => { if(e.key==='Enter' || e.key===' '){ e.preventDefault(); state.country=d.id; updateCountryInput(); render(); openCountryPopup(d); } });
@@ -373,6 +374,6 @@ function init(){
 init();
 window.cgdRendered = true; document.dispatchEvent(new Event('cgd:rendered'));
 </script>
-  <script src="shared/cgd-embed.js?v=20260928"></script>
+  <script src="shared/cgd-embed.js?v=20261006"></script>
 </body>
 </html>

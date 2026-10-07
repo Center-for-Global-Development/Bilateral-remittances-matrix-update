@@ -12,10 +12,10 @@
   --ocean: #F4F8FA;
 }
 * { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; background: #fff; color: var(--cgd-teal-black); font-family: var(--font-sans); }
+html, body { margin: 0; padding: 0; background: transparent; color: var(--cgd-teal-black); font-family: var(--font-sans); }
 html { scrollbar-gutter: stable; }
 body { font-size: var(--body-size); }
-.viz-wrapper { width: 100%; max-width: 930px; margin: 0 auto; padding: 13px; background: #fff; color: var(--cgd-teal-black); font-family: var(--font-sans); position: relative; }
+.viz-wrapper { width: 100%; max-width: 930px; margin: 0 auto; padding: 13px; background: transparent; color: var(--cgd-teal-black); font-family: var(--font-sans); position: relative; }
 .header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
 .title-block { min-width: 0; }
 .viz-wrapper h1 { margin: 0; color: var(--cgd-teal); font-size: var(--title-size-desktop); line-height: 1.14; letter-spacing: -0.012em; font-weight: 700; }
@@ -140,7 +140,8 @@ body { font-size: var(--body-size); }
   .country-trigger { height:25px; min-height:25px; font-size:var(--fs-input); }
   .country-menu { position:fixed; left:12px; right:12px; top:78px; }}
 @media (max-width:460px) { .fullscreen-btn { width:29px; height:29px; }}</style>
-  <link rel="stylesheet" href="shared/cgd-figure.css?v=20260928">
+  <link rel="stylesheet" href="https://use.typekit.net/ymp6ujv.css">
+  <link rel="stylesheet" href="shared/cgd-figure.css?v=20261006">
   <link rel="stylesheet" href="shared/cgd-responsive.css?v=20260928">
 </head>
 <body>
@@ -171,7 +172,7 @@ body { font-size: var(--body-size); }
   <div class="tooltip" id="tooltip" hidden></div>
   <div class="popup-backdrop" id="popup" role="dialog" aria-modal="true" aria-labelledby="popupTitle"><div class="popup-card"><div class="popup-top"><div><h3 class="popup-title" id="popupTitle"></h3><p class="popup-sub" id="popupSub"></p></div><button type="button" class="popup-close" id="popupClose" aria-label="Close popup">×</button></div><div id="popupBody"></div></div></div>
 </div>
-<script src="data/2-remittances-map.js?v=20260929"></script>
+<script src="data/2-remittances-map.js?v=20261006"></script>
 <script>
 (function() {
   const DATA = JSON.parse(CGD_VIZ_DATA);
@@ -191,7 +192,7 @@ body { font-size: var(--body-size); }
     detailsState = 'loading';
     detailsPromise = new Promise(resolve => {
       const el = document.createElement('script');
-      el.src = 'data/2-remittances-map-details.js?v=20260929';
+      el.src = 'data/2-remittances-map-details.js?v=20261006';
       el.onload = () => {
         try { DATA.flowStats = JSON.parse(CGD_VIZ_DETAILS); } catch (e) { /* keep {} */ }
         detailsState = 'ready';
@@ -467,6 +468,7 @@ body { font-size: var(--body-size); }
       btn.type = 'button';
       btn.className = 'country-option' + (o.id === selectedId ? ' selected' : '');
       btn.setAttribute('role','option');
+      btn.dataset.id = o.id;
       btn.textContent = o.label;
       btn.addEventListener('click', () => {
         if (state.scope === 'regional') state.region = o.id;
@@ -974,6 +976,6 @@ body { font-size: var(--body-size); }
   });
 })();
 </script>
-  <script src="shared/cgd-embed.js?v=20260928"></script>
+  <script src="shared/cgd-embed.js?v=20261006"></script>
 </body>
 </html>
