@@ -64,6 +64,8 @@ function formatSignedBillions(value) {
   if (value == null || Number.isNaN(value)) return 'N/A';
   return (value > 0 ? '+' : '') + formatBillions(value);
 }
+// The popup subtitle has no column header to carry the unit, so $bn values name it.
+function popupValue(value,share,changePp){const s=formatCell(value,share,changePp);return state.metric==='pct'?s:s.replace(/^([+-]?)/,'$1$')+'bn'}
 function formatCell(value,share,changePp){if(isChange())return state.metric==='pct'?formatPpChange(changePp):formatSignedBillions(value);return state.metric==='pct'?`${(share*100).toFixed(1)}%`:formatBillions(value)}
 function groupLabel(id){return vizData.groups.find(g=>g.id===id)?.label||id}
 function baseCell(year,rg,sg){return vizData.cells[`${year}|${rg}|${sg}`]||{value:0,share:0,corridors:0}}
@@ -84,7 +86,7 @@ function openPopup(rg,sg){
   const top=(isChange()?vizData.changeTopCorridors?.[key]:vizData.topCorridors[key])||{items:[],totalCount:0,shownCount:0,remainingValue:0};
   const popup=document.getElementById('popup');
   document.getElementById('popupTitle').textContent=isChange()?`${groupLabel(sg)} to ${groupLabel(rg)}: change`:`${groupLabel(sg)} to ${groupLabel(rg)}`;
-  document.getElementById('popupSub').textContent=isChange()?`2024 minus 2021 • ${formatCell(d.value,d.share,d.changePp)} across ${fmtInt.format(d.corridors||0)} corridors with non-zero change`:`${state.year} • ${formatCell(d.value,d.share)} across ${fmtInt.format(d.corridors||0)} corridors`;
+  document.getElementById('popupSub').textContent=isChange()?`Change 2021–2024: ${popupValue(d.value,d.share,d.changePp)} across ${fmtInt.format(d.corridors||0)} corridors with non-zero change`:`${popupValue(d.value,d.share)} across ${fmtInt.format(d.corridors||0)} corridors in ${state.year}`;
   const list=document.getElementById('corridorList');
   if(!top.items.length){
     list.innerHTML=isChange()?'<div class="remaining">No corridor changes in this cell.</div>':'<div class="remaining">No positive corridors in this cell.</div>';

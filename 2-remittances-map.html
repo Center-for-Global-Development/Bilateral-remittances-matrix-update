@@ -677,8 +677,8 @@ body { font-size: var(--body-size); }
         <div class="popup-stat"><div class="popup-stat-label">GNI per capita gap</div><div class="popup-stat-value">${escapeHtml(formatIntDollar(chosen.gd))}</div><div class="popup-stat-note">Source minus recipient, ${escapeHtml(signedPct(chosen.gp))} of recipient GNI per capita</div></div>
       </div>
       <div class="popup-section-title">Year comparison</div>
-      <div class="corridor-row"><div><div class="corridor-route">2021</div><div class="corridor-meta">${st21.p == null ? 'Share N/A' : `${sharePct(st21.p)} of recipient total`} • migrants: ${st21.m == null ? 'N/A' : fmtInt.format(st21.m)}</div></div><div class="corridor-value">${formatUsd(st21.v || 0)}</div></div>
-      <div class="corridor-row"><div><div class="corridor-route">2024</div><div class="corridor-meta">${st24.p == null ? 'Share N/A' : `${sharePct(st24.p)} of recipient total`} • migrants: ${st24.m == null ? 'N/A' : fmtInt.format(st24.m)}</div></div><div class="corridor-value">${formatUsd(st24.v || 0)}</div></div>
+      <div class="corridor-row"><div><div class="corridor-route">2021</div><div class="corridor-meta">${st21.p == null ? 'Share N/A' : `${sharePct(st21.p)} of recipient total`}, ${st21.m == null ? 'migrants N/A' : `${fmtInt.format(st21.m)} migrants`}</div></div><div class="corridor-value">${formatUsd(st21.v || 0)}</div></div>
+      <div class="corridor-row"><div><div class="corridor-route">2024</div><div class="corridor-meta">${st24.p == null ? 'Share N/A' : `${sharePct(st24.p)} of recipient total`}, ${st24.m == null ? 'migrants N/A' : `${fmtInt.format(st24.m)} migrants`}</div></div><div class="corridor-value">${formatUsd(st24.v || 0)}</div></div>
     `;
     openPopup(`${s} → ${r}`, `Modelled remittance corridor`, body);
   }
@@ -694,7 +694,7 @@ body { font-size: var(--body-size); }
       const st21 = safeStat(pairKey(d.s,d.r), '2021');
       const st24 = safeStat(pairKey(d.s,d.r), '2024');
       const st = safeStat(pairKey(d.s,d.r), state.year);
-      return `<div class="corridor-row"><div><div class="corridor-route">${escapeHtml(dir === 'out' ? `${countryName(d.s)} → ${other}` : `${other} → ${countryName(d.r)}`)}</div><div class="corridor-meta">${escapeHtml(changeLabel(st24.v, st21.v))}, 2021–2024 • migrants: ${st.m == null ? 'N/A' : fmtInt.format(st.m)}</div></div><div class="corridor-value">${formatUsd(d.v)}</div></div>`;
+      return `<div class="corridor-row"><div><div class="corridor-route">${escapeHtml(dir === 'out' ? `${countryName(d.s)} → ${other}` : `${other} → ${countryName(d.r)}`)}</div><div class="corridor-meta">${escapeHtml(changeLabel(st24.v, st21.v))} over 2021–2024, ${st.m == null ? 'migrants N/A' : `${fmtInt.format(st.m)} migrants`}</div></div><div class="corridor-value">${formatUsd(d.v)}</div></div>`;
     }).join('');
     const rem = rows.length - shown.length;
     return html + (rem > 0 ? `<div class="remaining">${fmtInt.format(rem)} further corridors not shown.</div>` : '');
@@ -722,7 +722,7 @@ body { font-size: var(--body-size); }
       <div class="popup-section-title">Largest ${mainDir === 'out' ? 'incoming' : 'outgoing'} corridors, ${state.year}</div>
       ${corridorRowsHtml(otherRows, mainDir === 'out' ? 'in' : 'out', 5)}
     `;
-    openPopup(meta.name, `${meta.region || 'Region N/A'} • ${meta.income || 'Income group N/A'}`, body);
+    openPopup(meta.name, `${meta.region || 'Region N/A'}, ${meta.income || 'Income group N/A'}`, body);
   }
 
   function render() {
@@ -809,7 +809,7 @@ body { font-size: var(--body-size); }
         drawHighlight(meta.code, state.selected === meta.code);
         const sent = formatCountryAmount(state.year, meta.code, 'out');
         const received = formatCountryAmount(state.year, meta.code, 'in');
-        showTooltip(`<strong>${escapeHtml(meta.name)}</strong><br>${escapeHtml(meta.region || 'Region N/A')} • ${escapeHtml(meta.income || 'Income group N/A')}<br>Sent: ${sent == null ? 'N/A' : formatUsd(sent)}<br>Received: ${received == null ? 'N/A' : formatUsd(received)}<br><span style="color:#394649">Click to focus this country.</span>`, event);
+        showTooltip(`<strong>${escapeHtml(meta.name)}</strong><br>${escapeHtml(meta.region || 'Region N/A')}, ${escapeHtml(meta.income || 'Income group N/A')}<br>Sent: ${sent == null ? 'N/A' : formatUsd(sent)}<br>Received: ${received == null ? 'N/A' : formatUsd(received)}<br><span style="color:#394649">Click to focus this country.</span>`, event);
       })
       .on('mousemove', moveTooltip)
       .on('mouseleave', function() { hideTooltip(); clearHoverHighlight(); if (state.scope === 'countries' && state.selected !== 'ALL') drawHighlight(state.selected, true); })

@@ -269,6 +269,12 @@ function formatCell(value, share) {
   return state.metric === 'pct' ? `${(share*100).toFixed(1)}%` : formatBillions(value);
 }
 
+// The popup subtitle has no column header to carry the unit, so $bn values name it.
+function popupValue(value, share) {
+  const s = formatCell(value, share);
+  return state.metric === 'pct' ? s : s.replace(/^([+-]?)/, '$1$') + 'bn';
+}
+
 function getCell(rowGroupId, columnGroupId) {
   if (!isChangeYear()) return vizData.cells[cellKey(rowGroupId, columnGroupId)] || {value:0, share:0, corridors:0};
   const current = vizData.cells[cellKey(rowGroupId, columnGroupId, '2024')] || {value:0, share:0, corridors:0};
@@ -415,10 +421,10 @@ function openPopup(rowGroupId, columnGroupId) {
   const popup = document.getElementById('popup');
   document.getElementById('popupTitle').textContent = `${groupLabel(columnGroupId)} to ${groupLabel(rowGroupId)}`;
   if (isChangeYear()) {
-    const corridorChange = d.corridors === 0 ? 'no change in positive corridor count' : `${signedPrefix(d.corridors)}${fmtInt.format(d.corridors)} positive corridors`;
-    document.getElementById('popupSub').textContent = `2021–2024 change • ${formatCell(d.value, d.share || 0)} • ${corridorChange}. Listed corridors are the largest in 2024.`;
+    const corridorChange = d.corridors === 0 ? 'no change in positive corridor count' : `${fmtInt.format(Math.abs(d.corridors))} ${d.corridors > 0 ? 'more' : 'fewer'} positive corridors`;
+    document.getElementById('popupSub').textContent = `Change 2021–2024: ${popupValue(d.value, d.share || 0)}, ${corridorChange}. Listed corridors are the largest in 2024.`;
   } else {
-    document.getElementById('popupSub').textContent = `${state.year} • ${formatCell(d.value, d.share || 0)} across ${fmtInt.format(d.corridors || 0)} corridors`;
+    document.getElementById('popupSub').textContent = `${popupValue(d.value, d.share || 0)} across ${fmtInt.format(d.corridors || 0)} corridors in ${state.year}`;
   }
   const list = document.getElementById('corridorList');
 
