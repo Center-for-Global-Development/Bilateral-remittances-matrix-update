@@ -142,9 +142,15 @@ body{font-size:var(--body-size)}
   
 /* The control bank hugs its controls once there is room to spare, so a short
  * row does not leave a bare stripe of panel. Compact widths keep the full-width
- * bank and the grid layouts in cgd-responsive.css. */
-@media (min-width: 601px){
+ * bank and the grid layouts in cgd-responsive.css. The groups and pills are
+ * sized to their own content rather than allowed to shrink: with a fit-content
+ * bank, a shrinkable group let some browsers squeeze the toggles below their
+ * labels, so "Change" ran into "Display" and the $bn pill collapsed. */
+@media (min-width: 761px){
   .controls{width:fit-content;max-width:100%}
+  .year-control,.metric-control{flex:0 0 auto;max-width:none}
+  .controls .segmented{flex:0 0 auto;width:auto;min-width:0}
+  .controls .segmented button{flex:0 0 auto;min-width:max-content;padding:0 12px}
 }
 </style>
 </head>
