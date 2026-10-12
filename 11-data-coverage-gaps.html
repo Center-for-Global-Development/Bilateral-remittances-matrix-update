@@ -366,14 +366,14 @@ html { scrollbar-gutter: stable; }
  * control bank that is itself `width:fit-content` — circular, so both toggles
  * settled on their floor and ellipsised "Global" and "Countries" even at
  * 1200px, with the bank leaving spare panel to its right. Giving each group a
- * max-content width makes fit-content measure the labels; flex-shrink stays at
- * 1, so the existing ellipsis is still there as a last resort when the row is
- * genuinely tight. Below 601px cgd-responsive.css lays the bank out as a grid
- * and none of this applies. */
+ * max-content width makes fit-content measure the labels. They do not shrink:
+ * with a fit-content bank, a shrinkable group let some browsers squeeze the
+ * toggles below their labels (as in figures 3 and 4). Below 601px
+ * cgd-responsive.css lays the bank out as a grid and none of this applies. */
 @media (min-width: 601px){
   #coverageExplorer .year-control,
   #coverageExplorer .view-control{
-    flex: 0 1 auto;
+    flex: 0 0 auto;
     width: max-content;
     max-width: none;
   }

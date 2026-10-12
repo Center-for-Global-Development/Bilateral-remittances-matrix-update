@@ -178,7 +178,15 @@ h1 { margin: 0; color: var(--cgd-teal); font-size: var(--title-size-desktop); li
       }
       .chart-head > :first-child { z-index: 7; color: var(--cgd-teal); }
     }
-  
+
+    /* cgd-responsive.css sizes selects to their widest option above 600px, but
+     * this bank is a grid, so the "All income statuses" select ran past its
+     * column and under the country picker. The select and the two toggles now
+     * start at their content width, and the country picker, which can shorten a
+     * long name, gives way when the row is tight (761-780px). */
+    @media (min-width: 761px) {
+      .controls { grid-template-columns: minmax(max-content, 0.82fr) minmax(120px, 1.35fr) minmax(max-content, 0.82fr) minmax(max-content, 0.95fr); }
+    }
 </style>
 </head>
 <body>

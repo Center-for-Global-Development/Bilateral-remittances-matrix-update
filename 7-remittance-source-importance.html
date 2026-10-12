@@ -26,6 +26,10 @@
 .info-btn{display:inline;border:0;background:transparent;color:var(--cgd-teal);font:inherit;font-size:var(--fs-min);font-weight:700;line-height:1;padding:0 1px;margin-left:2px;cursor:pointer;vertical-align:super;text-decoration:none}.info-btn:hover{text-decoration:underline}.info-btn:focus{outline:1px solid rgba(11,76,91,.35);outline-offset:1px;border-radius:2px}.formula{margin:8px 0;padding:8px 10px;border:1px solid #EDF2F3;border-radius:10px;background:var(--cgd-offwhite);font-size:12px;line-height:1.45;color:var(--cgd-teal-black);overflow-x:auto}.tooltip-grid{display:grid;grid-template-columns:minmax(140px,max-content) max-content;gap:2px 10px;margin-top:5px}.tooltip-grid span{color:var(--cgd-dark-gray)}.tooltip-grid b{color:var(--cgd-teal);font-weight:700;text-align:right}.popup-metric-line{margin:7px 0 0;color:var(--cgd-dark-gray);font-size:11.5px;line-height:1.35}.popup-metric-line strong{color:var(--cgd-teal)}
 @media(max-width:520px){.tooltip{min-width:min(230px,calc(100vw - 24px));max-width:calc(100vw - 24px)}.tooltip-grid{grid-template-columns:minmax(0,1fr) auto}}
 .db-gni{fill:var(--cgd-dark-gray);font-size:var(--fs-min);opacity:.82}.db-row-label-main{fill:var(--cgd-teal-black);font-size:11px;font-weight:700}
+/* The metric toggle's fixed basis was a few px short of "Average importance" at
+ * 761-860px, which ellipsised it. On the flex bank it never goes below its
+ * labels; at 760px and below the bank is a grid and this does not apply. */
+@media(min-width:761px){.metric-control{min-width:max-content}}
 </style>
   <link rel="stylesheet" href="https://use.typekit.net/ymp6ujv.css">
   <link rel="stylesheet" href="shared/cgd-figure.css?v=20261006">
